@@ -44,20 +44,20 @@ export function getClientIp(req: Request): string {
  * - Auto-Jail for 15 minutes if thresholds are abused
  */
 export function antiDdosMiddleware(req: Request, res: Response, next: NextFunction) {
-  // Allow PWA assets and WebAPK minting server requests without rate-limiting
-  if (
-    req.path === '/manifest.json' ||
-    req.path === '/sw.js' ||
-    req.path.startsWith('/pwa-') ||
-    req.path.startsWith('/icon-') ||
-    req.path.endsWith('.png') ||
-    req.path.endsWith('.svg') ||
-    req.path.endsWith('.ico')
-  ) {
+  const ip = getClientIp(req);
+
+  // 1. Whitelist localhost and internal loopback
+  if (ip === '127.0.0.1' || ip === '::1' || ip === 'localhost') {
     return next();
   }
 
-  const ip = getClientIp(req);
+  // 2. Allow all frontend assets, Vite modules, SPA pages and static files freely
+  // Anti-DDoS rate limiting must ONLY monitor API endpoints (/api/*)
+  const isApiRoute = req.path.startsWith('/api/');
+  if (!isApiRoute) {
+    return next();
+  }
+
   const now = Date.now();
 
   let record = ipRegistry.get(ip);
@@ -86,31 +86,31 @@ export function antiDdosMiddleware(req: Request, res: Response, next: NextFuncti
     }
   }
 
-  // Rate limits
+  // Rate limits specifically for API routes
   const isAuthRoute =
     req.path.startsWith('/api/license') ||
     req.path.startsWith('/api/admin') ||
     req.path.startsWith('/api/auth');
 
-  // If hitting sensitive routes too fast (e.g. brute-forcing licenses or admin)
-  if (isAuthRoute && record.count > 30) {
-    record.jailUntil = now + 15 * 60 * 1000; // 15 min jail
+  // If hitting sensitive auth routes too fast (brute-forcing licenses or admin)
+  if (isAuthRoute && record.count > 60) {
+    record.jailUntil = now + 10 * 60 * 1000; // 10 min jail
     record.lastViolationReason = 'Excessive Auth API Calls (Brute Force Protection)';
     return res.status(429).json({
       success: false,
       error: 'TOO_MANY_AUTH_ATTEMPTS',
-      message: 'Muitas requisições de autenticação em sequência. Seu IP foi bloqueado temporariamente por 15 minutos.',
+      message: 'Muitas requisições de autenticação em sequência. Seu IP foi bloqueado temporariamente por 10 minutos.',
     });
   }
 
-  // General Anti-DDoS limit
-  if (record.count > 150) {
-    record.jailUntil = now + 10 * 60 * 1000; // 10 min jail
-    record.lastViolationReason = 'DDoS Flood Protection Triggered';
+  // General API Flood limit
+  if (record.count > 300) {
+    record.jailUntil = now + 5 * 60 * 1000; // 5 min jail
+    record.lastViolationReason = 'API Flood Protection Triggered';
     return res.status(429).json({
       success: false,
       error: 'RATE_LIMIT_EXCEEDED',
-      message: 'Taxa de requisições excedida. Sistema Anti-DDoS ativado para proteger o servidor.',
+      message: 'Taxa de requisições à API excedida. Sistema Anti-DDoS ativado para proteger o servidor.',
     });
   }
 

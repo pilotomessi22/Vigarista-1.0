@@ -22,6 +22,9 @@ async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
 
+  // Trust reverse proxy (Nginx) so real client IP is properly extracted
+  app.set('trust proxy', 1);
+
   // 1. Anti-DDoS Rate Limiting & Protection Layer
   app.use(antiDdosMiddleware);
 
