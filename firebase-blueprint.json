@@ -1,0 +1,59 @@
+{
+  "entities": {
+    "LicenseKey": {
+      "title": "LicenseKey",
+      "description": "Chaves de licença para ativação de clientes",
+      "type": "object",
+      "properties": {
+        "key": { "type": "string", "maxLength": 64 },
+        "daysValid": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "expiresAt": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "used", "expired", "revoked"] }
+      },
+      "required": ["key", "daysValid", "createdAt", "expiresAt", "status"]
+    },
+    "LicensedUser": {
+      "title": "LicensedUser",
+      "description": "Usuários licenciados no painel",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string", "maxLength": 64 },
+        "passwordHash": { "type": "string" },
+        "licenseKey": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "expiresAt": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "expired", "revoked"] }
+      },
+      "required": ["username", "licenseKey", "createdAt", "expiresAt", "status"]
+    },
+    "LoginAttemptLog": {
+      "title": "LoginAttemptLog",
+      "description": "Registro simples de auditoria de tentativas de login com status de sucesso ou falha, sem expor dados sensíveis",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string", "enum": ["success", "failure"] },
+        "authType": { "type": "string", "enum": ["client_login", "client_register", "security_gate", "master_access"] },
+        "maskedTarget": { "type": "string", "maxLength": 64, "description": "Identificador ofuscado/mascarado do usuário ou portão, sem senhas ou chaves" },
+        "reason": { "type": "string", "maxLength": 64, "description": "Categoria do resultado da tentativa (ex: AUTH_SUCCESS, INVALID_CREDENTIALS)" },
+        "timestamp": { "type": "string", "description": "Timestamp ISO da tentativa" },
+        "clientDevice": { "type": "string", "maxLength": 128, "description": "Informação básica de plataforma do cliente" }
+      },
+      "required": ["status", "authType", "maskedTarget", "reason", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/license_keys/{keyId}": {
+      "schema": "LicenseKey",
+      "description": "Armazenamento e sincronização de chaves de licença"
+    },
+    "/licensed_users/{userId}": {
+      "schema": "LicensedUser",
+      "description": "Armazenamento e sincronização de contas de clientes"
+    },
+    "/login_attempts/{attemptId}": {
+      "schema": "LoginAttemptLog",
+      "description": "Coleção de logs de auditoria de tentativas de login (apenas status sucesso ou falha, sem credenciais sensíveis)"
+    }
+  }
+}

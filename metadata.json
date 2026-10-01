@@ -1,0 +1,6 @@
+{
+  "name": "PainelV1 by messin",
+  "description": "Plataforma oficial de venda e gestão de ingressos para shows, festivais, teatro, esportes e exposições com integração Quentro.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
