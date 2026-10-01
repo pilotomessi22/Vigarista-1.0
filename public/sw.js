@@ -1,5 +1,5 @@
-// Service Worker for VIGARISTA PWA
-const CACHE_NAME = 'vigarista-app-v5';
+// Service Worker for Quentro PWA
+const CACHE_NAME = 'quentro-app-v6';
 const PRECACHE_URLS = [
   '/',
   '/manifest.json',

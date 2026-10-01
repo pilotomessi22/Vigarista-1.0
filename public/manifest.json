@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "VIGARISTA",
-  "short_name": "VIGARISTA",
-  "description": "Painel VIGARISTA Oficial - Ingressos e Carteira Digital",
+  "name": "Quentro",
+  "short_name": "Quentro",
+  "description": "Quentro - Carteira Digital de Ingressos",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
