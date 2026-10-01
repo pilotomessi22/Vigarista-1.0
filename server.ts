@@ -191,7 +191,7 @@ async function startServer() {
   // Vite middleware for development & static serving for production
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, allowedHosts: true },
       appType: 'spa',
     });
     // Ensure HTML and main assets are not aggressively cached by iOS Safari PWA
