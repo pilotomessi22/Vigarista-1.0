@@ -28,12 +28,6 @@ import { MatrixRainBackground } from './MatrixRainBackground';
 import { hackerAudio } from '../utils/hackerAudio';
 import { requestServerLicenseVerification } from '../utils/antiTamper';
 import { recordLoginAttempt } from '../utils/securityLogs';
-import {
-  authenticateWithBiometrics,
-  checkBiometricAvailability,
-  getEnrolledBiometricData,
-} from '../utils/biometricAuth';
-import { BiometricPromptModal } from './BiometricPromptModal';
 
 interface ClientAuthModalProps {
   isOpen: boolean;
@@ -64,13 +58,6 @@ export const ClientAuthModal: React.FC<ClientAuthModalProps> = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [hasRememberedUser, setHasRememberedUser] = useState(false);
 
-  // Native Biometrics (Apple Face ID / Android Biometrics) State
-  const [isBiometricSupported, setIsBiometricSupported] = useState(false);
-  const [enrolledBiometric, setEnrolledBiometric] = useState<{ username: string; licenseKey: string } | null>(null);
-  const [pendingBiometricUser, setPendingBiometricUser] = useState<LicensedUser | null>(null);
-  const [isBiometricPromptOpen, setIsBiometricPromptOpen] = useState(false);
-  const [isBiometricAuthenticating, setIsBiometricAuthenticating] = useState(false);
-
   const passwordInputRef = useRef<HTMLInputElement>(null);
   const usernameInputRef = useRef<HTMLInputElement>(null);
 
@@ -85,13 +72,6 @@ export const ClientAuthModal: React.FC<ClientAuthModalProps> = ({
       setErrorMessage('');
       setSuccessMessage('');
       setIsLoading(false);
-      setIsBiometricAuthenticating(false);
-
-      // Check Native Biometric capability
-      checkBiometricAvailability().then((avail) => {
-        setIsBiometricSupported(avail);
-      });
-      setEnrolledBiometric(getEnrolledBiometricData());
 
       // Pre-warm client public IP resolution in background
       fetchClientPublicIp().catch(() => {});
@@ -137,34 +117,6 @@ export const ClientAuthModal: React.FC<ClientAuthModalProps> = ({
     setPassword('');
     setHasRememberedUser(false);
     usernameInputRef.current?.focus();
-  };
-
-  const handleFaceIdLogin = async () => {
-    setErrorMessage('');
-    setSuccessMessage('');
-    setIsBiometricAuthenticating(true);
-
-    try {
-      const res = await authenticateWithBiometrics();
-      if (res.success && res.user) {
-        recordLoginAttempt('success', 'client_biometric', res.user.username, 'BIOMETRIC_AUTH_SUCCESS');
-        resetFailedAttempts();
-        hackerAudio.playAccessGrantedSound();
-        setSecurityUnlockCooldown(5 * 60 * 1000, res.user.username);
-        setSuccessMessage('Face ID reconhecido! Liberando acesso...');
-        setTimeout(() => {
-          onSuccess(res.user!);
-        }, 500);
-      } else {
-        hackerAudio.playAccessDeniedSound();
-        setErrorMessage(res.message || 'Face ID não reconhecido.');
-      }
-    } catch (err: unknown) {
-      const error = err as { message?: string };
-      setErrorMessage(error.message || 'Falha ao processar Face ID.');
-    } finally {
-      setIsBiometricAuthenticating(false);
-    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -332,17 +284,9 @@ export const ClientAuthModal: React.FC<ClientAuthModalProps> = ({
 
           setSuccessMessage('Conta ativada e blindada pelo servidor!');
 
-          // Offer clean Face ID enrollment
-          if (isBiometricSupported) {
-            setPendingBiometricUser(result.user);
-            setTimeout(() => {
-              setIsBiometricPromptOpen(true);
-            }, 600);
-          } else {
-            setTimeout(() => {
-              onSuccess(result.user!);
-            }, 700);
-          }
+          setTimeout(() => {
+            onSuccess(result.user!);
+          }, 600);
         } else {
           setIsLoading(false);
           const attempt = registerFailedAttempt();
@@ -652,45 +596,6 @@ export const ClientAuthModal: React.FC<ClientAuthModalProps> = ({
                 </>
               )}
             </button>
-
-            {/* Clean Apple-style Face ID Login Button */}
-            {mode === 'login' && isBiometricSupported && (
-              <button
-                id="btn-vigarista-faceid-login"
-                type="button"
-                onClick={handleFaceIdLogin}
-                disabled={isLoading || isBiometricAuthenticating}
-                className="w-full h-12 rounded-full bg-[#0d121c]/90 hover:bg-[#131b28] border border-cyan-500/30 hover:border-cyan-400/60 active:scale-[0.99] text-cyan-300 hover:text-white font-bold text-xs tracking-wider transition-all shadow-[0_0_15px_rgba(6,182,212,0.12)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 font-mono uppercase"
-              >
-                {/* Face ID Icon */}
-                <svg
-                  className={`w-4 h-4 text-cyan-400 stroke-current ${
-                    isBiometricAuthenticating ? 'animate-pulse' : ''
-                  }`}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M4 8V6a2 2 0 0 1 2-2h2" />
-                  <path d="M16 4h2a2 2 0 0 1 2 2v2" />
-                  <path d="M20 16v2a2 2 0 0 1-2 2h-2" />
-                  <path d="M8 20H6a2 2 0 0 1-2-2v-2" />
-                  <circle cx="9" cy="10" r="0.75" fill="currentColor" />
-                  <circle cx="15" cy="10" r="0.75" fill="currentColor" />
-                  <path d="M12 11v2" />
-                  <path d="M9 16c.8.8 2.2 1 3 1s2.2-.2 3-1" />
-                </svg>
-                <span>
-                  {isBiometricAuthenticating
-                    ? 'Aguardando Face ID...'
-                    : enrolledBiometric
-                    ? `Entrar com Face ID (@${enrolledBiometric.username})`
-                    : 'Entrar com Face ID'}
-                </span>
-              </button>
-            )}
           </div>
         </div>
 
@@ -731,21 +636,6 @@ export const ClientAuthModal: React.FC<ClientAuthModalProps> = ({
           )}
         </div>
       </div>
-
-      {/* Clean Native Biometric Enrollment Modal */}
-      {isBiometricPromptOpen && pendingBiometricUser && (
-        <BiometricPromptModal
-          isOpen={isBiometricPromptOpen}
-          username={pendingBiometricUser.username}
-          licenseKey={pendingBiometricUser.licenseKey || licenseKey}
-          onComplete={() => {
-            setIsBiometricPromptOpen(false);
-            if (pendingBiometricUser) {
-              onSuccess(pendingBiometricUser);
-            }
-          }}
-        />
-      )}
     </div>
   );
 };
