@@ -1,12 +1,12 @@
 // Service Worker for Quentro PWA
-const CACHE_NAME = 'quentro-app-v6';
+const CACHE_NAME = 'quentro-app-v7';
 const PRECACHE_URLS = [
   '/',
-  '/manifest.json',
-  '/pwa-192x192.png',
-  '/pwa-512x512.png',
-  '/pwa-maskable-512x512.png',
-  '/apple-touch-icon.png',
+  '/manifest.json?v=5',
+  '/pwa-192x192.png?v=5',
+  '/pwa-512x512.png?v=5',
+  '/pwa-maskable-512x512.png?v=5',
+  '/apple-touch-icon.png?v=5',
   '/favicon.ico'
 ];
 

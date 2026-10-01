@@ -6,10 +6,10 @@
       <stop offset="100%" stop-color="#00BAC7" />
     </linearGradient>
   </defs>
-  <!-- Full-bleed 100% solid background with ZERO borders or corners -->
-  <rect width="512" height="512" fill="#0A0F15" />
+  <!-- Pure solid 100% full-bleed black matching manifest background_color -->
+  <rect width="512" height="512" fill="#000000" />
   
-  <!-- Quentro Chevron inside Google Safe Zone -->
+  <!-- Quentro Chevron -->
   <path 
     d="M 205 145 L 315 256 L 205 367" 
     fill="none" 

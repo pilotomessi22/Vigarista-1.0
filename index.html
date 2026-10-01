@@ -29,6 +29,7 @@
     <meta http-equiv="Expires" content="0" />
     
     <!-- PWA & Mobile Web App meta tags for Android & iOS -->
+    <meta name="theme-color" content="#141C1D" />
     <meta name="application-name" content="Quentro" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -53,14 +54,14 @@
             document.documentElement.classList.add('is-ios');
           }
           if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function() {});
+            navigator.serviceWorker.register('/sw.js?v=7', { scope: '/' }).catch(function() {});
           }
         } catch (e) {}
       })();
     </script>
 
     <!-- Web App Manifest & Favicon -->
-    <link rel="manifest" href="/manifest.json?v=4" />
+    <link rel="manifest" href="/manifest.json?v=5" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
