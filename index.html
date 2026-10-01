@@ -10,6 +10,19 @@
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     
+    <!-- Automatic domain redirect for shared links -->
+    <script>
+      (function() {
+        try {
+          var host = window.location.hostname;
+          if (host.indexOf('ais-pre-') !== -1 && host.indexOf('run.app') !== -1) {
+            var target = 'https://vigarista.tech' + window.location.pathname + window.location.search + window.location.hash;
+            window.location.replace(target);
+          }
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- Cache-Control to prevent stale builds -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
     <meta http-equiv="Pragma" content="no-cache" />

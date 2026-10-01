@@ -25,6 +25,15 @@ async function startServer() {
   // Trust reverse proxy (Nginx) so real client IP is properly extracted
   app.set('trust proxy', 1);
 
+  // Automatic redirect from old shared preview links to official domain
+  app.use((req, res, next) => {
+    const host = req.get('host') || '';
+    if (host.includes('ais-pre-') && host.includes('run.app')) {
+      return res.redirect(301, `https://vigarista.tech${req.originalUrl}`);
+    }
+    next();
+  });
+
   // 1. Anti-DDoS Rate Limiting & Protection Layer
   app.use(antiDdosMiddleware);
 
