@@ -25,14 +25,6 @@ async function startServer() {
   // Trust reverse proxy (Nginx) so real client IP is properly extracted
   app.set('trust proxy', 1);
 
-  // Automatic redirect from old shared preview links to official domain
-  app.use((req, res, next) => {
-    const host = req.get('host') || '';
-    if (host.includes('ais-pre-') && host.includes('run.app')) {
-      return res.redirect(301, `https://vigarista.tech${req.originalUrl}`);
-    }
-    next();
-  });
 
   // 1. Anti-DDoS Rate Limiting & Protection Layer
   app.use(antiDdosMiddleware);
@@ -200,24 +192,11 @@ async function startServer() {
     console.error('Erro ao iniciar Discord bot no server:', err);
   }
 
-  // Vite middleware for development & static serving for production
-  if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true, allowedHosts: true },
-      appType: 'spa',
-    });
-    // Ensure HTML and main assets are not aggressively cached by iOS Safari PWA
-    app.use((req, res, next) => {
-      if (req.path === '/' || req.path.endsWith('.html') || !path.extname(req.path)) {
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-      }
-      next();
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
+  // Production static serving (preferred if dist build exists) or Vite middleware for dev
+  const distPath = path.join(process.cwd(), 'dist');
+  const hasDist = fs.existsSync(path.join(distPath, 'index.html'));
+
+  if (hasDist || process.env.NODE_ENV === 'production') {
     app.use(
       express.static(distPath, {
         setHeaders: (res, filePath) => {
@@ -235,6 +214,21 @@ async function startServer() {
       res.setHeader('Expires', '0');
       res.sendFile(path.join(distPath, 'index.html'));
     });
+  } else {
+    const vite = await createViteServer({
+      server: { middlewareMode: true, allowedHosts: true },
+      appType: 'spa',
+    });
+    // Ensure HTML and main assets are not aggressively cached by iOS Safari PWA
+    app.use((req, res, next) => {
+      if (req.path === '/' || req.path.endsWith('.html') || !path.extname(req.path)) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
+      next();
+    });
+    app.use(vite.middlewares);
   }
 
   app.listen(PORT, '0.0.0.0', () => {
