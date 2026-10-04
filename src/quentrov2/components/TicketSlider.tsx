@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft,
   ChevronRight,
   Check,
   X,
   Pencil,
-  Info,
-  Camera,
   ZoomIn,
-  RefreshCw,
+  Camera,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ConcertEvent, Ticket } from '../types';
 import { TicketmasterLogo } from './TicketmasterLogo';
+import { AntiScreenshotModal } from './AntiScreenshotModal';
 
 interface TicketSliderProps {
   event: ConcertEvent;
@@ -41,7 +40,6 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
   onOpenInfo,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const [copiedToast, setCopiedToast] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Active tickets fallback
@@ -51,24 +49,111 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
   // Inline edit state
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<string>('');
+  const [editCpfValue, setEditCpfValue] = useState<string>('');
 
   // Modals
   const [isQrZoomed, setIsQrZoomed] = useState(false);
   const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
   const [customBannerUrlInput, setCustomBannerUrlInput] = useState('');
 
+  // Anti-Screenshot Modal State matching 68342559-182f-47e3-b75a-617766e4be17.jpeg
+  const [isAntiScreenshotOpen, setIsAntiScreenshotOpen] = useState(false);
+
+  // Stealth 100% Pitch-Black Screen Mode for recordings / screen sharing
+  const [isTotalBlackoutActive, setIsTotalBlackoutActive] = useState(false);
+  const blackoutTapCountRef = useRef(0);
+  const blackoutTapTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTapTimestampRef = useRef(0);
+
+  const handleBlackoutScreenTap = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    if (e.cancelable) {
+      e.preventDefault();
+    }
+    const now = Date.now();
+    // Debounce duplicate touch+click within 40ms
+    if (now - lastTapTimestampRef.current < 40) return;
+    lastTapTimestampRef.current = now;
+
+    blackoutTapCountRef.current += 1;
+
+    if (blackoutTapTimerRef.current) {
+      clearTimeout(blackoutTapTimerRef.current);
+    }
+
+    if (blackoutTapCountRef.current >= 3) {
+      // 3 Taps: Restore normal ticket screen!
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        try {
+          navigator.vibrate(60);
+        } catch (_) {}
+      }
+      blackoutTapCountRef.current = 0;
+      setIsTotalBlackoutActive(false);
+      return;
+    }
+
+    // Wait 280ms to check if a 3rd tap arrives
+    blackoutTapTimerRef.current = setTimeout(() => {
+      if (blackoutTapCountRef.current === 2) {
+        // 2 Taps: Open Transfer tab!
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          try {
+            navigator.vibrate([40, 40, 40]);
+          } catch (_) {}
+        }
+        blackoutTapCountRef.current = 0;
+        setIsTotalBlackoutActive(false);
+        onOpenTransfer();
+      } else {
+        blackoutTapCountRef.current = 0;
+      }
+    }, 280);
+  };
+
   // Dynamic token progress bar (Quentro/Ticketmaster live refresh)
-  const [progressPercent, setProgressPercent] = useState(38);
+  const [progressPercent, setProgressPercent] = useState(72);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setProgressPercent((prev) => {
-        if (prev >= 100) return 0;
-        return prev + 2;
+        if (prev >= 100) return 10;
+        return prev + 1.5;
       });
-    }, 300);
+    }, 400);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Listen for screenshot shortcuts and print events to show the security screen
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key === 'PrintScreen' ||
+        (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key)) ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 's')
+      ) {
+        setIsAntiScreenshotOpen(true);
+      }
+    };
+
+    const handleBeforePrint = () => {
+      setIsAntiScreenshotOpen(true);
+    };
+
+    const handleCustomTrigger = () => {
+      setIsAntiScreenshotOpen(true);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('quentro:trigger_anti_screenshot', handleCustomTrigger);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('quentro:trigger_anti_screenshot', handleCustomTrigger);
+    };
   }, []);
 
   const showToast = (msg: string) => {
@@ -95,6 +180,9 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
   const startEdit = (field: string, initialText: string) => {
     setEditingField(field);
     setEditValue(initialText);
+    if (field === 'titular') {
+      setEditCpfValue(currentTicket.titularCpf || '662.266.173-14');
+    }
   };
 
   const saveEdit = (field: string) => {
@@ -108,92 +196,86 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
       if (onUpdateEvent) onUpdateEvent(event.id, { title: trimmed });
     } else if (field === 'eventSubtitle') {
       if (onUpdateEvent) onUpdateEvent(event.id, { headerSubtitle: trimmed });
-    } else if (field === 'gate') {
-      if (onUpdateTicket) onUpdateTicket(currentTicket.id, { gate: trimmed });
-    } else if (field === 'titular') {
-      if (onUpdateTicket) onUpdateTicket(currentTicket.id, { titularName: trimmed });
-      if (onUpdateTitular) onUpdateTitular(currentTicket.id, trimmed);
+    } else if (field === 'categoryBanner') {
+      if (onUpdateTicket) onUpdateTicket(currentTicket.id, { categoryBanner: trimmed });
     } else if (field === 'sector') {
       if (onUpdateTicket) onUpdateTicket(currentTicket.id, { sector: trimmed });
+    } else if (field === 'titular') {
+      const trimmedCpf = editCpfValue.trim() || currentTicket.titularCpf || '662.266.173-14';
+      if (onUpdateTicket) {
+        onUpdateTicket(currentTicket.id, {
+          titularName: trimmed,
+          titularCpf: trimmedCpf,
+        });
+      }
+      if (onUpdateTitular) onUpdateTitular(currentTicket.id, trimmed);
+    } else if (field === 'taxa') {
+      if (onUpdateTicket) onUpdateTicket(currentTicket.id, { taxaText: trimmed });
     } else if (field === 'section') {
       if (onUpdateTicket) onUpdateTicket(currentTicket.id, { section: trimmed });
     } else if (field === 'row') {
       if (onUpdateTicket) onUpdateTicket(currentTicket.id, { row: trimmed });
-    } else if (field === 'date') {
-      if (onUpdateTicket) onUpdateTicket(currentTicket.id, { dateText: trimmed });
     } else if (field === 'openingTime') {
       if (onUpdateTicket) onUpdateTicket(currentTicket.id, { openingTime: trimmed });
     } else if (field === 'startTime') {
       if (onUpdateTicket) onUpdateTicket(currentTicket.id, { startTime: trimmed });
-    } else if (field === 'qrData') {
-      if (onUpdateTicket) onUpdateTicket(currentTicket.id, { qrData: trimmed });
+    } else if (field === 'hashtagText') {
+      if (onUpdateTicket) onUpdateTicket(currentTicket.id, { hashtagText: trimmed });
     }
 
     setEditingField(null);
-    showToast('Informação atualizada!');
+    showToast('Atualizado!');
   };
 
-  const handleSetBanner = (type: 'ticketmaster' | 'custom', url?: string) => {
+  const handleSetBanner = (
+    type: 'ticketmaster' | 'custom',
+    imageUrl?: string
+  ) => {
     if (onUpdateTicket) {
       onUpdateTicket(currentTicket.id, {
         bannerType: type,
-        bannerImage: url || '',
+        bannerImage: imageUrl,
       });
     }
     setIsBannerModalOpen(false);
-    showToast(type === 'ticketmaster' ? 'Logo Ticketmaster selecionado!' : 'Foto do banner atualizada!');
+    showToast('Banner atualizado!');
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
         handleSetBanner('custom', result);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: event.title,
-          text: `Meus ingressos para ${event.title} - ${currentTicket.sector}`,
-          url: window.location.href,
-        });
-      } catch {
-        // user canceled
-      }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      setCopiedToast(true);
-      setTimeout(() => setCopiedToast(false), 2500);
-    }
-  };
-
-  // Values with safe defaults matching IMG_8616
+  // Values matching IMG_9243.jpeg
   const displayTitle = event.title || 'BTS WORLD TOUR ARIRANG';
-  const displaySubtitle = event.headerSubtitle || '30/10/2026 – MorumBis';
-  const displayGate = currentTicket.gate || 'Portão 1';
-  const displayTitular = currentTicket.titularName || 'Nome e Sobrenome';
-  const displaySector = currentTicket.sector || 'Arquibancada · Meia';
-  const displaySection = currentTicket.section || 'PISTA';
+  const displaySubtitle = event.headerSubtitle || '28/10/26 - MorumBis';
+  const displayCategoryBanner = currentTicket.categoryBanner || 'MEIA-ENTRADA';
+  const displaySector = currentTicket.sector || 'Cadeira Superior';
+  const displayTitular = currentTicket.titularName || 'Fernanda Lucena';
+  const displayTitularCpf = currentTicket.titularCpf || '662.266.173-14';
+  const displayTaxa = currentTicket.taxaText || 'ESTUDA: Meia-Entrada - R$ 490';
+  const displaySection = currentTicket.section || 'CADEIRA SUPERIOR';
   const displayRow = currentTicket.row || 'Não numerado';
-  const displayDate = currentTicket.dateText || event.fullDate || 'Sexta-feira 30/10/2026';
   const displayOpening = currentTicket.openingTime || '16:00';
   const displayStart = currentTicket.startTime || '20:00';
+  const displayHashtag = currentTicket.hashtagText || '#OAoVivoÉAgora';
+
   const qrValue =
     currentTicket.qrData ||
-    `https://app.quentro.com/t/${currentTicket.id || '30102026-bts-01'}`;
+    `https://app.quentro.com/t/${currentTicket.id || '28102026-bts-01'}`;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#121719] text-white w-full select-none font-sans relative">
       {/* Toast Notification */}
       <AnimatePresence>
-        {(toastMessage || copiedToast) && (
+        {toastMessage && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -201,12 +283,12 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
             className="fixed top-14 left-1/2 -translate-x-1/2 z-50 bg-[#00D2B4] text-black font-semibold text-xs py-2 px-4 rounded-full shadow-2xl flex items-center gap-2 pointer-events-none"
           >
             <Check className="w-3.5 h-3.5 stroke-[3]" />
-            <span>{toastMessage || 'Link copiado!'}</span>
+            <span>{toastMessage}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Top Header - Fixed matching native app and IMG_8616 */}
+      {/* Header matching IMG_9243.jpeg: Left Chevron + Title & Subtitle + Top-Right Action */}
       <header
         className="sticky top-0 z-30 flex items-center justify-between px-3.5 pb-2.5 w-full bg-[#121719] select-none"
         style={{
@@ -219,10 +301,10 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
           className="p-1 -ml-1 text-white hover:text-zinc-300 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
           aria-label="Voltar"
         >
-          <ChevronLeft className="w-7 h-7 stroke-[2]" />
+          <ChevronLeft className="w-6 h-6 stroke-[2]" />
         </button>
 
-        {/* Center/Left Event Header: Editable Title and Subtitle */}
+        {/* Center/Left Event Header matching IMG_9243.jpeg */}
         <div className="flex-1 min-w-0 px-2 flex flex-col justify-center">
           {editingField === 'eventTitle' ? (
             <div className="flex items-center gap-1.5">
@@ -248,7 +330,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
           ) : (
             <h1
               onClick={() => startEdit('eventTitle', displayTitle)}
-              className="text-[15px] sm:text-[16px] font-medium text-white tracking-tight leading-tight truncate cursor-pointer hover:text-[#00D2B4] transition-colors"
+              className="text-[15.5px] sm:text-[16px] font-medium text-white tracking-tight leading-tight truncate cursor-pointer hover:text-[#00D2B4] transition-colors"
               title="Clique para editar título"
             >
               {displayTitle}
@@ -279,7 +361,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
           ) : (
             <p
               onClick={() => startEdit('eventSubtitle', displaySubtitle)}
-              className="text-[12px] text-[#8E9CA8] font-normal leading-tight truncate cursor-pointer hover:text-white transition-colors mt-0.5"
+              className="text-[12.5px] text-[#8696A6] font-normal leading-tight truncate cursor-pointer hover:text-white transition-colors mt-0.5"
               title="Clique para editar data e local"
             >
               {displaySubtitle}
@@ -287,84 +369,173 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
           )}
         </div>
 
-        {/* Top-Right Transfer / Download Action Button (Opens SelectTicketsScreen) */}
+        {/* Top-Right Action / Upload button matching IMG_9243.jpeg */}
         <button
           id="btn-ticket-action-transfer"
           onClick={onOpenTransfer}
-          className="p-1.5 -mr-1 text-white hover:text-zinc-300 active:scale-95 transition-all cursor-pointer flex items-center justify-center rounded-full hover:bg-white/10"
+          className="p-1.5 -mr-1 text-white/80 hover:text-white active:scale-95 transition-all cursor-pointer flex items-center justify-center rounded-full hover:bg-white/10"
           title="Selecionar / Transferir Ingresso"
           aria-label="Selecionar ou Transferir Ingresso"
         >
+          {/* Exact square-with-arrow action icon matching IMG_9243.jpeg */}
           <svg
-            width="22"
-            height="22"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="1.9"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+            <polyline points="16 6 12 2 8 6" />
+            <line x1="12" y1="2" x2="12" y2="15" />
           </svg>
         </button>
       </header>
 
-      {/* Main Content: The Two Separate Cards matching IMG_8616 */}
+      {/* Main Content matching IMG_9243.jpeg */}
       <main
-        className="flex-1 px-3.5 pt-1.5 pb-6 max-w-xl mx-auto w-full flex flex-col items-center"
+        className="flex-1 px-3.5 sm:px-4 pt-1.5 pb-6 max-w-md mx-auto w-full flex flex-col items-center"
         style={{
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
         }}
       >
         <div className="relative w-full">
-          {/* CARD 1: Ticketmaster Royal Blue Header + Live QR + ACESSO (Exact match to IMG_8616) */}
-          <div className="w-full bg-white rounded-[26px] overflow-hidden shadow-2xl select-none flex flex-col">
-            {/* Upper Blue Section with Official Ticketmaster Wordmark - Exact tall proportion */}
-            <div className="bg-[#0052EA] h-[270px] sm:h-[290px] w-full flex items-center justify-center relative select-none overflow-hidden group">
-              {currentTicket.bannerType === 'custom' && currentTicket.bannerImage ? (
-                <img
-                  src={currentTicket.bannerImage}
-                  alt="Ticket Banner"
-                  className="w-full h-full object-cover"
+          {/* ========================================================
+              CARD 1: Top QR Card matching IMG_9243.jpeg
+              - Royal Blue MEIA-ENTRADA Header
+              - Ticketmaster Logo + #OAoVivoÉAgora
+              - Quentro Live Mint Security Progress Bar
+              - QR Code (Left) + SETOR & Mais informação (Right)
+              ======================================================== */}
+          <div className="w-full bg-white rounded-[16px] sm:rounded-[18px] overflow-hidden shadow-2xl select-none flex flex-col">
+            {/* Top Royal Blue Banner: MEIA-ENTRADA */}
+            {editingField === 'categoryBanner' ? (
+              <div className="bg-[#0052CC] px-4 py-2.5 flex items-center justify-center gap-2">
+                <input
+                  type="text"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={() => saveEdit('categoryBanner')}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') saveEdit('categoryBanner');
+                    if (e.key === 'Escape') setEditingField(null);
+                  }}
+                  autoFocus
+                  className="bg-white/20 border border-white text-white font-bold text-[16px] text-center px-2 py-0.5 rounded w-48 focus:outline-none uppercase"
                 />
-              ) : (
-                <div className="flex items-center justify-center w-full px-6 py-8">
-                  <TicketmasterLogo
-                    className="w-[260px] sm:w-[290px] h-auto drop-shadow-md"
-                    color="#FFFFFF"
+                <button
+                  onClick={() => saveEdit('categoryBanner')}
+                  className="p-1 bg-white text-[#0052CC] rounded text-xs font-bold"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div
+                onClick={() => startEdit('categoryBanner', displayCategoryBanner)}
+                className="bg-[#0052CC] py-2.5 px-4 text-center cursor-pointer hover:bg-[#0047b3] transition-colors"
+                title="Clique para editar categoria"
+              >
+                <span className="text-[17px] sm:text-[18px] font-bold text-white tracking-[0.06em] uppercase">
+                  {displayCategoryBanner}
+                </span>
+              </div>
+            )}
+
+            {/* Ticketmaster Logo Area with Faint Watermark & #OAoVivoÉAgora */}
+            <div className="bg-white py-6 sm:py-7 px-6 w-full flex flex-col items-center justify-center relative select-none overflow-hidden group">
+              {/* Subtle background geometric ticket watermark matching IMG_9243.jpeg */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.08]">
+                <svg
+                  className="w-[280px] h-[200px]"
+                  viewBox="0 0 200 150"
+                  fill="none"
+                  stroke="#1E293B"
+                  strokeWidth="2.5"
+                >
+                  <rect x="25" y="20" width="150" height="90" rx="10" transform="rotate(-6 100 65)" />
+                  <line x1="60" y1="20" x2="60" y2="110" strokeDasharray="4 4" transform="rotate(-6 100 65)" />
+                  <circle cx="25" cy="65" r="8" fill="white" />
+                  <circle cx="175" cy="65" r="8" fill="white" />
+                </svg>
+              </div>
+
+              {currentTicket.bannerType === 'custom' && currentTicket.bannerImage ? (
+                <div className="relative w-full h-[120px] rounded-lg overflow-hidden">
+                  <img
+                    src={currentTicket.bannerImage}
+                    alt="Ticket Banner"
+                    className="w-full h-full object-cover"
                   />
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center relative z-10 w-full">
+                  <TicketmasterLogo
+                    className="w-[230px] sm:w-[250px] h-auto"
+                    color="#0052CC"
+                  />
+                  {editingField === 'hashtagText' ? (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <input
+                        type="text"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => saveEdit('hashtagText')}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveEdit('hashtagText');
+                          if (e.key === 'Escape') setEditingField(null);
+                        }}
+                        autoFocus
+                        className="text-[13px] font-bold text-black border border-zinc-400 px-1 py-0.5 rounded text-center"
+                      />
+                      <button
+                        onClick={() => saveEdit('hashtagText')}
+                        className="p-0.5 bg-[#0052CC] text-white rounded"
+                      >
+                        <Check className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <span
+                      onClick={() => startEdit('hashtagText', displayHashtag)}
+                      className="text-[13.5px] sm:text-[14px] font-extrabold text-black tracking-tight mt-1.5 cursor-pointer hover:text-[#0052CC] transition-colors"
+                      title="Clique para editar hashtag"
+                    >
+                      {displayHashtag}
+                    </span>
+                  )}
                 </div>
               )}
 
-              {/* Discreet button to customize banner or upload photo */}
+              {/* Discreet button to customize banner */}
               <button
                 id="btn-edit-banner"
                 onClick={() => setIsBannerModalOpen(true)}
-                className="absolute top-3 right-3 p-2 rounded-full bg-black/30 hover:bg-black/50 text-white/80 hover:text-white backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
-                title="Personalizar banner (Foto do Evento ou Logo Ticketmaster)"
+                className="absolute top-2 right-2 p-1.5 rounded-full bg-zinc-100 hover:bg-zinc-200 text-zinc-600 transition-all opacity-0 group-hover:opacity-100 cursor-pointer z-20"
+                title="Personalizar banner"
               >
-                <Camera className="w-4 h-4" />
+                <Camera className="w-3.5 h-3.5" />
               </button>
-
-              {/* Quentro/Ticketmaster Live Security Progress Bar on Bottom Edge */}
-              <div className="absolute bottom-0 left-0 right-0 h-[3.5px] bg-[#003BB0] overflow-hidden">
-                <div
-                  className="h-full bg-[#00D2B4] transition-all duration-300 ease-linear shadow-[0_0_6px_#00D2B4]"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
             </div>
 
-            {/* Lower White Section: QR Code (Left) + ACESSO & Button (Right) */}
-            <div className="p-4 sm:p-5 bg-white flex items-center justify-between gap-4">
-              {/* Dynamic Quentro/Ticketmaster QR Code with Live Scanning Hologram */}
+            {/* Quentro Live Security Progress Bar matching IMG_9243.jpeg */}
+            <div className="w-full h-[2.5px] bg-[#E5E7EB] flex overflow-hidden">
+              <div
+                className="h-full bg-[#00D2B4] transition-all duration-300 ease-linear shadow-[0_0_6px_#00D2B4]"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+
+            {/* Lower Section: QR Code (Left) + SETOR & Mais Informação (Right) */}
+            <div className="p-4 sm:p-4.5 bg-white flex items-center justify-between gap-4">
+              {/* Dynamic QR Code */}
               <div
                 id="ticket-qr-container"
                 onClick={() => setIsQrZoomed(true)}
-                className="relative w-[124px] h-[124px] sm:w-[130px] sm:h-[130px] shrink-0 bg-white rounded-lg flex items-center justify-center overflow-hidden cursor-pointer group"
+                className="relative w-[122px] h-[122px] sm:w-[130px] sm:h-[130px] shrink-0 bg-white rounded-lg flex items-center justify-center overflow-hidden cursor-pointer group qr-code-protected"
                 title="Clique para ampliar o QR Code"
               >
                 <QRCodeSVG
@@ -378,9 +549,9 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
 
                 {/* Quentro Live Hologram Scanning Beam Line */}
                 <motion.div
-                  animate={{ y: [-2, 118, -2] }}
+                  animate={{ y: [-2, 116, -2] }}
                   transition={{ repeat: Infinity, duration: 2.4, ease: 'linear' }}
-                  className="absolute left-0 right-0 h-[2.5px] bg-gradient-to-r from-transparent via-[#00D2B4] to-transparent shadow-[0_0_8px_#00D2B4] pointer-events-none z-10"
+                  className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#00D2B4] to-transparent shadow-[0_0_8px_#00D2B4] pointer-events-none z-10"
                 />
 
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center">
@@ -388,155 +559,175 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                 </div>
               </div>
 
-              {/* Right Side: ACESSO & Mais Informação Button */}
-              <div className="flex-1 min-w-0 flex flex-col justify-between h-[124px] sm:h-[130px] py-0.5">
+              {/* Right Side: SETOR & Mais informação Button */}
+              <div className="flex-1 min-w-0 flex flex-col justify-between h-[122px] sm:h-[130px] py-0.5">
                 <div>
-                  <span className="text-[11px] font-medium tracking-wider text-[#7E8E9B] uppercase block">
-                    ACESSO
+                  <span className="text-[10px] font-semibold tracking-wider text-[#8A98A5] uppercase block">
+                    SETOR
                   </span>
 
-                  {editingField === 'gate' ? (
+                  {editingField === 'sector' ? (
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <input
                         type="text"
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
-                        onBlur={() => saveEdit('gate')}
+                        onBlur={() => saveEdit('sector')}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter') saveEdit('gate');
+                          if (e.key === 'Enter') saveEdit('sector');
                           if (e.key === 'Escape') setEditingField(null);
                         }}
                         autoFocus
-                        className="text-[20px] font-semibold text-zinc-900 border-b-2 border-[#2563EB] bg-blue-50/40 px-1 py-0.5 w-full rounded focus:outline-none"
+                        className="text-[15px] font-medium text-black border-b border-[#0052CC] bg-blue-50/40 px-1 py-0.5 w-full rounded focus:outline-none"
                       />
                       <button
-                        onClick={() => saveEdit('gate')}
-                        className="p-1 rounded bg-[#2563EB] text-white"
+                        onClick={() => saveEdit('sector')}
+                        className="p-1 rounded bg-[#0052CC] text-white"
                       >
-                        <Check className="w-3.5 h-3.5" />
+                        <Check className="w-3 h-3" />
                       </button>
                     </div>
                   ) : (
                     <div
-                      onClick={() => startEdit('gate', displayGate)}
-                      className="text-[20px] sm:text-[22px] font-semibold text-zinc-900 cursor-pointer hover:text-[#2563EB] transition-colors truncate mt-0.5 leading-tight"
-                      title="Clique para editar portão"
+                      onClick={() => startEdit('sector', displaySector)}
+                      className="text-[15.5px] sm:text-[16px] font-medium text-black cursor-pointer hover:text-[#0052CC] transition-colors truncate mt-0.5 leading-snug"
+                      title="Clique para editar setor"
                     >
-                      {displayGate}
+                      {displaySector}
                     </div>
                   )}
                 </div>
 
-                {/* Mais Informação Pill Button (Exact match to IMG_8616) */}
+                {/* Mais informação Pill Button matching IMG_9243.jpeg */}
                 <button
                   id="btn-ticket-more-info"
                   onClick={onOpenInfo}
-                  className="bg-[#EAF2FE] hover:bg-[#DDEAFE] active:scale-95 text-[#2563EB] font-medium text-[13px] sm:text-[14px] py-2.5 px-4 rounded-[10px] text-center transition-all cursor-pointer w-full mt-auto"
+                  className="bg-[#E5F7FF] hover:bg-[#D9F2FE] active:scale-95 text-[#0099C4] font-medium text-[12.5px] py-2 px-3.5 rounded-[9px] text-center transition-all cursor-pointer w-fit mt-auto"
                 >
-                  Mais Informação
+                  Mais informação
                 </button>
               </div>
             </div>
           </div>
 
-          {/* CARD 2: Separate Details Card with Dashed Separators (Exact match to IMG_8616) */}
-          <div className="w-full bg-white rounded-[24px] p-5 shadow-xl text-zinc-900 mt-3 select-none">
-            {/* ROW 1: TITULAR (with Blue Pencil icon on right) */}
-            <div className="pb-2.5 border-b border-dashed border-zinc-200/90">
-              <div className="flex items-center justify-between mb-0.5">
-                <span className="text-[11px] font-medium text-[#7E8E9B] tracking-wider uppercase">
+          {/* ========================================================
+              CARD 2: Details Card matching IMG_9243.jpeg
+              - TITULAR: Fernanda Lucena / 662.266.173-14 + Pencil Icon
+              - TAXA: ESTUDA: Meia-Entrada - R$ 490
+              - SEÇÃO: CADEIRA SUPERIOR | FILEIRA: Não numerado
+              - ABERTURA: 16:00 | INÍCIO: 20:00
+              ======================================================== */}
+          <div className="w-full bg-white rounded-[16px] sm:rounded-[18px] p-5 shadow-xl text-black mt-2.5 sm:mt-3 select-none">
+            {/* Field 1: TITULAR with Pencil Icon on Right */}
+            <div className="relative">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold text-[#8A98A5] tracking-wider uppercase">
                   TITULAR
                 </span>
                 <button
                   id="btn-edit-pencil-titular"
                   onClick={() => startEdit('titular', displayTitular)}
-                  className="text-[#2563EB] hover:text-blue-700 active:scale-95 transition-all p-0.5 cursor-pointer"
-                  title="Editar titular"
+                  className="text-[#00A3C4] hover:text-[#0082A6] active:scale-90 transition-transform p-0.5 cursor-pointer"
+                  title="Editar titular e CPF"
                 >
-                  <Pencil className="w-4 h-4 stroke-[2.2]" />
+                  <Pencil className="w-4 h-4 stroke-[2]" />
                 </button>
               </div>
 
               {editingField === 'titular' ? (
-                <div className="flex items-center gap-1.5 mt-1">
+                <div className="flex flex-col gap-1.5 mt-1.5">
                   <input
                     type="text"
+                    placeholder="Nome do Titular"
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
-                    onBlur={() => saveEdit('titular')}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') saveEdit('titular');
-                      if (e.key === 'Escape') setEditingField(null);
-                    }}
+                    className="text-[15px] font-medium text-black border-b border-[#0052CC] bg-blue-50/40 px-1 py-0.5 rounded focus:outline-none"
                     autoFocus
-                    className="text-[16px] font-normal text-zinc-900 border-b-2 border-[#2563EB] bg-blue-50/40 px-1 py-0.5 w-full rounded focus:outline-none"
                   />
-                  <button
-                    onClick={() => saveEdit('titular')}
-                    className="p-1 rounded bg-[#2563EB] text-white"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                  </button>
+                  <input
+                    type="text"
+                    placeholder="CPF do Titular"
+                    value={editCpfValue}
+                    onChange={(e) => setEditCpfValue(e.target.value)}
+                    className="text-[14px] font-medium text-black border-b border-[#0052CC] bg-blue-50/40 px-1 py-0.5 rounded focus:outline-none"
+                  />
+                  <div className="flex justify-end gap-2 mt-1">
+                    <button
+                      onClick={() => setEditingField(null)}
+                      className="px-2 py-0.5 text-xs text-zinc-500 hover:text-zinc-800"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={() => saveEdit('titular')}
+                      className="px-2.5 py-0.5 bg-[#0052CC] text-white rounded text-xs font-semibold"
+                    >
+                      Salvar
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div
                   onClick={() => startEdit('titular', displayTitular)}
-                  className="text-[16px] sm:text-[17px] font-normal text-zinc-900 cursor-pointer hover:text-[#2563EB] transition-colors truncate"
+                  className="cursor-pointer hover:text-[#0052CC] transition-colors mt-0.5"
                   title="Clique para editar titular"
                 >
-                  {displayTitular}
+                  <p className="text-[15.5px] font-medium text-black leading-tight">
+                    {displayTitular}
+                  </p>
+                  <p className="text-[14px] font-medium text-black leading-tight mt-0.5 tracking-tight">
+                    {displayTitularCpf}
+                  </p>
                 </div>
               )}
             </div>
 
-            {/* ROW 2: SETOR */}
-            <div className="py-2.5 border-b border-dashed border-zinc-200/90">
-              <span className="text-[11px] font-medium text-[#7E8E9B] tracking-wider uppercase block mb-0.5">
-                SETOR
+            {/* Field 2: TAXA */}
+            <div className="mt-3.5">
+              <span className="text-[10px] font-semibold text-[#8A98A5] tracking-wider uppercase block">
+                TAXA
               </span>
-
-              {editingField === 'sector' ? (
-                <div className="flex items-center gap-1.5 mt-1">
+              {editingField === 'taxa' ? (
+                <div className="flex items-center gap-1.5 mt-0.5">
                   <input
                     type="text"
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
-                    onBlur={() => saveEdit('sector')}
+                    onBlur={() => saveEdit('taxa')}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') saveEdit('sector');
+                      if (e.key === 'Enter') saveEdit('taxa');
                       if (e.key === 'Escape') setEditingField(null);
                     }}
                     autoFocus
-                    className="text-[16px] font-normal text-zinc-900 border-b-2 border-[#2563EB] bg-blue-50/40 px-1 py-0.5 w-full rounded focus:outline-none"
+                    className="text-[14.5px] font-semibold text-black border-b border-[#0052CC] bg-blue-50/40 px-1 py-0.5 w-full rounded focus:outline-none"
                   />
                   <button
-                    onClick={() => saveEdit('sector')}
-                    className="p-1 rounded bg-[#2563EB] text-white"
+                    onClick={() => saveEdit('taxa')}
+                    className="p-1 rounded bg-[#0052CC] text-white"
                   >
-                    <Check className="w-3.5 h-3.5" />
+                    <Check className="w-3 h-3" />
                   </button>
                 </div>
               ) : (
-                <div
-                  onClick={() => startEdit('sector', displaySector)}
-                  className="text-[16px] sm:text-[17px] font-normal text-zinc-900 cursor-pointer hover:text-[#2563EB] transition-colors truncate"
-                  title="Clique para editar setor"
+                <p
+                  onClick={() => startEdit('taxa', displayTaxa)}
+                  className="text-[14.5px] font-semibold text-black leading-normal mt-0.5 cursor-pointer hover:text-[#0052CC] transition-colors"
+                  title="Clique para editar taxa"
                 >
-                  {displaySector}
-                </div>
+                  {displayTaxa}
+                </p>
               )}
             </div>
 
-            {/* ROW 3: SEÇÃO + FILEIRA (2 Columns) */}
-            <div className="py-2.5 border-b border-dashed border-zinc-200/90 grid grid-cols-2 gap-4">
-              {/* SEÇÃO */}
+            {/* Field 3: SEÇÃO & FILEIRA (Two columns) */}
+            <div className="mt-3.5 flex items-start justify-between">
+              {/* Left Column: SEÇÃO */}
               <div className="min-w-0">
-                <span className="text-[11px] font-medium text-[#7E8E9B] tracking-wider uppercase block mb-0.5">
+                <span className="text-[10px] font-semibold text-[#8A98A5] tracking-wider uppercase block">
                   SEÇÃO
                 </span>
-
                 {editingField === 'section' ? (
-                  <div className="flex items-center gap-1 mt-1">
+                  <div className="flex items-center gap-1 mt-0.5">
                     <input
                       type="text"
                       value={editValue}
@@ -547,34 +738,33 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                         if (e.key === 'Escape') setEditingField(null);
                       }}
                       autoFocus
-                      className="text-[16px] font-normal text-zinc-900 border-b-2 border-[#2563EB] bg-blue-50/40 px-1 py-0.5 w-full rounded focus:outline-none"
+                      className="text-[14px] font-bold text-black uppercase border-b border-[#0052CC] bg-blue-50/40 px-1 py-0.5 rounded focus:outline-none"
                     />
                     <button
                       onClick={() => saveEdit('section')}
-                      className="p-1 rounded bg-[#2563EB] text-white"
+                      className="p-1 rounded bg-[#0052CC] text-white"
                     >
                       <Check className="w-3 h-3" />
                     </button>
                   </div>
                 ) : (
-                  <div
+                  <p
                     onClick={() => startEdit('section', displaySection)}
-                    className="text-[16px] sm:text-[17px] font-normal text-zinc-900 cursor-pointer hover:text-[#2563EB] transition-colors truncate"
+                    className="text-[14px] font-bold text-black uppercase mt-0.5 cursor-pointer hover:text-[#0052CC] transition-colors"
                     title="Clique para editar seção"
                   >
                     {displaySection}
-                  </div>
+                  </p>
                 )}
               </div>
 
-              {/* FILEIRA */}
-              <div className="min-w-0">
-                <span className="text-[11px] font-medium text-[#7E8E9B] tracking-wider uppercase block mb-0.5">
+              {/* Right Column: FILEIRA */}
+              <div className="min-w-0 text-left">
+                <span className="text-[10px] font-semibold text-[#8A98A5] tracking-wider uppercase block">
                   FILEIRA
                 </span>
-
                 {editingField === 'row' ? (
-                  <div className="flex items-center gap-1 mt-1">
+                  <div className="flex items-center gap-1 mt-0.5">
                     <input
                       type="text"
                       value={editValue}
@@ -585,75 +775,36 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                         if (e.key === 'Escape') setEditingField(null);
                       }}
                       autoFocus
-                      className="text-[16px] font-normal text-zinc-900 border-b-2 border-[#2563EB] bg-blue-50/40 px-1 py-0.5 w-full rounded focus:outline-none"
+                      className="text-[14px] font-normal text-black border-b border-[#0052CC] bg-blue-50/40 px-1 py-0.5 rounded focus:outline-none"
                     />
                     <button
                       onClick={() => saveEdit('row')}
-                      className="p-1 rounded bg-[#2563EB] text-white"
+                      className="p-1 rounded bg-[#0052CC] text-white"
                     >
                       <Check className="w-3 h-3" />
                     </button>
                   </div>
                 ) : (
-                  <div
+                  <p
                     onClick={() => startEdit('row', displayRow)}
-                    className="text-[16px] sm:text-[17px] font-normal text-zinc-900 cursor-pointer hover:text-[#2563EB] transition-colors truncate"
+                    className="text-[14px] font-normal text-black mt-0.5 cursor-pointer hover:text-[#0052CC] transition-colors"
                     title="Clique para editar fileira"
                   >
                     {displayRow}
-                  </div>
+                  </p>
                 )}
               </div>
             </div>
 
-            {/* ROW 4: DATA */}
-            <div className="py-2.5 border-b border-dashed border-zinc-200/90">
-              <span className="text-[11px] font-medium text-[#7E8E9B] tracking-wider uppercase block mb-0.5">
-                DATA
-              </span>
-
-              {editingField === 'date' ? (
-                <div className="flex items-center gap-1.5 mt-1">
-                  <input
-                    type="text"
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    onBlur={() => saveEdit('date')}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') saveEdit('date');
-                      if (e.key === 'Escape') setEditingField(null);
-                    }}
-                    autoFocus
-                    className="text-[16px] font-normal text-zinc-900 border-b-2 border-[#2563EB] bg-blue-50/40 px-1 py-0.5 w-full rounded focus:outline-none"
-                  />
-                  <button
-                    onClick={() => saveEdit('date')}
-                    className="p-1 rounded bg-[#2563EB] text-white"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <div
-                  onClick={() => startEdit('date', displayDate)}
-                  className="text-[16px] sm:text-[17px] font-normal text-zinc-900 cursor-pointer hover:text-[#2563EB] transition-colors truncate"
-                  title="Clique para editar data"
-                >
-                  {displayDate}
-                </div>
-              )}
-            </div>
-
-            {/* ROW 5: ABERTURA + INÍCIO (2 Columns) */}
-            <div className="pt-2.5 grid grid-cols-2 gap-4">
-              {/* ABERTURA */}
+            {/* Field 4: ABERTURA & INÍCIO (Two columns) */}
+            <div className="mt-3.5 flex items-start justify-between">
+              {/* Left Column: ABERTURA */}
               <div className="min-w-0">
-                <span className="text-[11px] font-medium text-[#7E8E9B] tracking-wider uppercase block mb-0.5">
+                <span className="text-[10px] font-semibold text-[#8A98A5] tracking-wider uppercase block">
                   ABERTURA
                 </span>
-
                 {editingField === 'openingTime' ? (
-                  <div className="flex items-center gap-1 mt-1">
+                  <div className="flex items-center gap-1 mt-0.5">
                     <input
                       type="text"
                       value={editValue}
@@ -664,34 +815,33 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                         if (e.key === 'Escape') setEditingField(null);
                       }}
                       autoFocus
-                      className="text-[16px] font-normal text-zinc-900 border-b-2 border-[#2563EB] bg-blue-50/40 px-1 py-0.5 w-full rounded focus:outline-none"
+                      className="text-[15px] font-bold text-black border-b border-[#0052CC] bg-blue-50/40 px-1 py-0.5 rounded focus:outline-none"
                     />
                     <button
                       onClick={() => saveEdit('openingTime')}
-                      className="p-1 rounded bg-[#2563EB] text-white"
+                      className="p-1 rounded bg-[#0052CC] text-white"
                     >
                       <Check className="w-3 h-3" />
                     </button>
                   </div>
                 ) : (
-                  <div
+                  <p
                     onClick={() => startEdit('openingTime', displayOpening)}
-                    className="text-[16px] sm:text-[17px] font-normal text-zinc-900 cursor-pointer hover:text-[#2563EB] transition-colors truncate"
-                    title="Clique para editar horário de abertura"
+                    className="text-[15px] font-bold text-black mt-0.5 cursor-pointer hover:text-[#0052CC] transition-colors"
+                    title="Clique para editar abertura"
                   >
                     {displayOpening}
-                  </div>
+                  </p>
                 )}
               </div>
 
-              {/* INÍCIO */}
-              <div className="min-w-0">
-                <span className="text-[11px] font-medium text-[#7E8E9B] tracking-wider uppercase block mb-0.5">
+              {/* Right Column: INÍCIO */}
+              <div className="min-w-0 text-left">
+                <span className="text-[10px] font-semibold text-[#8A98A5] tracking-wider uppercase block">
                   INÍCIO
                 </span>
-
                 {editingField === 'startTime' ? (
-                  <div className="flex items-center gap-1 mt-1">
+                  <div className="flex items-center gap-1 mt-0.5">
                     <input
                       type="text"
                       value={editValue}
@@ -702,29 +852,31 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                         if (e.key === 'Escape') setEditingField(null);
                       }}
                       autoFocus
-                      className="text-[16px] font-normal text-zinc-900 border-b-2 border-[#2563EB] bg-blue-50/40 px-1 py-0.5 w-full rounded focus:outline-none"
+                      className="text-[15px] font-bold text-black border-b border-[#0052CC] bg-blue-50/40 px-1 py-0.5 rounded focus:outline-none"
                     />
                     <button
                       onClick={() => saveEdit('startTime')}
-                      className="p-1 rounded bg-[#2563EB] text-white"
+                      className="p-1 rounded bg-[#0052CC] text-white"
                     >
                       <Check className="w-3 h-3" />
                     </button>
                   </div>
                 ) : (
-                  <div
-                    onClick={() => startEdit('startTime', displayStart)}
-                    className="text-[16px] sm:text-[17px] font-normal text-zinc-900 cursor-pointer hover:text-[#2563EB] transition-colors truncate"
-                    title="Clique para editar horário de início"
+                  <p
+                    id="btn-trigger-stealth-blackout-time"
+                    onClick={() => setIsTotalBlackoutActive(true)}
+                    onDoubleClick={() => startEdit('startTime', displayStart)}
+                    className="text-[15px] font-bold text-black mt-0.5 cursor-pointer hover:text-[#0052CC] transition-colors select-none"
+                    title="Toque no horário para ativar tela preta (2 toques: Transferência / 3 toques: Restaurar)"
                   >
                     {displayStart}
-                  </div>
+                  </p>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Navigation Arrows for convenient switching between tickets */}
+          {/* Navigation Arrows when multiple tickets exist */}
           {activeTickets.length > 1 && (
             <>
               {currentIndex > 0 && (
@@ -750,7 +902,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         </div>
       </main>
 
-      {/* MODAL 1: Fullscreen QR Code Zoom (High brightness for turnstile scanning) */}
+      {/* MODAL 1: Fullscreen QR Code Zoom */}
       <AnimatePresence>
         {isQrZoomed && (
           <motion.div
@@ -769,21 +921,21 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
               </button>
 
               <div className="w-full flex items-center justify-center mt-2 mb-4">
-                <TicketmasterLogo className="w-36 h-auto" color="#0250EB" />
+                <TicketmasterLogo className="w-36 h-auto" color="#0052CC" />
               </div>
 
               <div className="text-center mb-4">
-                <span className="text-[11px] font-bold text-[#7E8E9B] uppercase tracking-wider block">
+                <span className="text-[11px] font-bold text-[#8A98A5] uppercase tracking-wider block">
                   {displaySector}
                 </span>
                 <h4 className="text-base font-bold text-zinc-900 mt-0.5">
-                  {displayGate} · {displaySection}
+                  {displaySection}
                 </h4>
                 <p className="text-xs text-zinc-500">{displayTitular}</p>
               </div>
 
               {/* Large Crisp QR Code with Animated Scanning Beam */}
-              <div className="relative p-2 bg-white rounded-2xl border-2 border-zinc-100 shadow-inner flex items-center justify-center overflow-hidden">
+              <div className="relative p-2 bg-white rounded-2xl border-2 border-zinc-100 shadow-inner flex items-center justify-center overflow-hidden qr-code-protected">
                 <QRCodeSVG
                   value={qrValue}
                   size={200}
@@ -804,28 +956,19 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
               <p className="text-[11px] text-zinc-400 mt-4 text-center font-medium">
                 Apresente este código na catraca de acesso
               </p>
-
-              {/* Editable QR Data Option */}
-              <div className="w-full mt-4 pt-3 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-500">
-                <span className="truncate max-w-[170px] text-[10px] font-mono text-zinc-400">
-                  {qrValue}
-                </span>
-                <button
-                  onClick={() => {
-                    setIsQrZoomed(false);
-                    startEdit('qrData', qrValue);
-                  }}
-                  className="text-xs font-semibold text-[#0250EB] hover:underline cursor-pointer flex items-center gap-1"
-                >
-                  <Pencil className="w-3 h-3" /> Editar
-                </button>
-              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* MODAL 2: Banner Customization Modal (Ticketmaster Logo vs Event Photo) */}
+      {/* Anti-Screenshot Security Modal matching 68342559-182f-47e3-b75a-617766e4be17.jpeg */}
+      <AntiScreenshotModal
+        isOpen={isAntiScreenshotOpen}
+        onClose={() => setIsAntiScreenshotOpen(false)}
+        onOpenMoreInfo={onOpenInfo}
+      />
+
+      {/* MODAL 2: Banner Customization Modal */}
       <AnimatePresence>
         {isBannerModalOpen && (
           <motion.div
@@ -856,7 +999,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                 {/* Option 1: Official Ticketmaster Logo (Default) */}
                 <button
                   onClick={() => handleSetBanner('ticketmaster')}
-                  className="w-full p-3 rounded-xl bg-[#0250EB] hover:bg-[#0047d4] active:scale-[0.99] flex items-center justify-between transition-all cursor-pointer"
+                  className="w-full p-3 rounded-xl bg-[#0052CC] hover:bg-[#0047b3] active:scale-[0.99] flex items-center justify-between transition-all cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <TicketmasterLogo className="w-24 h-auto" color="#FFFFFF" />
@@ -872,14 +1015,14 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                   onClick={() =>
                     handleSetBanner(
                       'custom',
-                      event.coverImage || '/bts-arirang-poster.jpg'
+                      event.coverImage || '/bts-poster-square.jpg'
                     )
                   }
                   className="w-full p-3 rounded-xl bg-[#252E2E] hover:bg-[#2D3737] border border-zinc-700/60 active:scale-[0.99] flex items-center justify-between transition-all cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <img
-                      src={event.coverImage || '/bts-arirang-poster.jpg'}
+                      src={event.coverImage || '/bts-poster-square.jpg'}
                       alt="Pôster"
                       className="w-10 h-7 rounded object-cover"
                     />
@@ -889,7 +1032,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                   </div>
                   {currentTicket.bannerType === 'custom' &&
                     currentTicket.bannerImage ===
-                      (event.coverImage || '/bts-arirang-poster.jpg') && (
+                      (event.coverImage || '/bts-poster-square.jpg') && (
                       <Check className="w-4 h-4 text-[#00D2B4] stroke-[3]" />
                     )}
                 </button>
@@ -938,6 +1081,26 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Stealth 100% Pitch-Black Screen Mode for recordings / WhatsApp screen sharing */}
+      {isTotalBlackoutActive && (
+        <div
+          id="stealth-pitch-blackout"
+          onClick={handleBlackoutScreenTap}
+          onTouchStart={handleBlackoutScreenTap}
+          className="fixed inset-0 z-[9999999] bg-black select-none cursor-pointer"
+          style={{
+            backgroundColor: '#000000',
+            width: '100vw',
+            height: '100dvh',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+          aria-label="Tela preta de proteção ativa"
+        />
+      )}
     </div>
   );
 };

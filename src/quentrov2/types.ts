@@ -2,12 +2,16 @@ export interface Ticket {
   id: string;
   eventId: string;
   category: string; // 'Inteira' | 'Meia'
-  sector: string; // 'Pista · Inteira'
-  section: string; // 'PISTA'
+  sector: string; // 'Cadeira Superior'
+  section: string; // 'CADEIRA SUPERIOR'
   row: string; // 'Não numerado' | string
   seat: string; // '-' | string
   gate: string; // 'Portão 1'
-  titularName: string; // 'Nome e Sobrenome'
+  titularName: string; // 'Fernanda Lucena'
+  titularCpf?: string; // '662.266.173-14'
+  taxaText?: string; // 'ESTUDA: Meia-Entrada - R$ 490'
+  categoryBanner?: string; // 'MEIA-ENTRADA'
+  hashtagText?: string; // '#OAoVivoÉAgora'
   qrData: string;
   dateText?: string; // 'Quarta-feira 28/10/2026'
   openingTime?: string; // '16:00'

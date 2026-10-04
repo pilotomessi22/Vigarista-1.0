@@ -192,11 +192,11 @@ async function startServer() {
     console.error('Erro ao iniciar Discord bot no server:', err);
   }
 
-  // Production static serving (preferred if dist build exists) or Vite middleware for dev
+  // Production static serving (when running via npm start / NODE_ENV=production) or Vite middleware for dev
+  const isProduction = process.env.NODE_ENV === 'production';
   const distPath = path.join(process.cwd(), 'dist');
-  const hasDist = fs.existsSync(path.join(distPath, 'index.html'));
 
-  if (hasDist || process.env.NODE_ENV === 'production') {
+  if (isProduction && fs.existsSync(path.join(distPath, 'index.html'))) {
     app.use(
       express.static(distPath, {
         setHeaders: (res, filePath) => {

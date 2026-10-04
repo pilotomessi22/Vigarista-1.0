@@ -235,40 +235,46 @@ export function QuentroV2Screen({ onClose, initialEventId, className = '' }: Que
   };
 
   const handleConfirmTransfer = (recipient: string, method: 'email' | 'quentroId') => {
-    setEvents((prevEvents) =>
-      prevEvents.map((evt) => {
+    setEvents((prevEvents) => {
+      const next = prevEvents.map((evt) => {
         if (evt.id !== selectedEventId) return evt;
         return {
           ...evt,
-          tickets: evt.tickets.map((tkt) => {
-            if (selectedTicketIds.includes(tkt.id)) {
-              return {
-                ...tkt,
-                transferredTo: recipient,
-                transferredAt: new Date().toISOString(),
-                titularName: recipient.includes('@') ? recipient.split('@')[0] : recipient,
-              };
-            }
-            return tkt;
-          }),
+          tickets: evt.tickets.filter((tkt) => !selectedTicketIds.includes(tkt.id)),
         };
-      })
-    );
+      });
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch (err) {
+        console.error(err);
+      }
+      return next;
+    });
+    setSelectedTicketIds([]);
+    setActiveScreen('home');
   };
 
   const handleUpdateProfile = (updated: Partial<UserProfile>) => {
     setUserProfile((prev) => ({ ...prev, ...updated }));
   };
 
+  const isTransferScreen = activeScreen === 'transfer_form';
+
   return (
     <div
-      className={`min-h-screen min-h-[100dvh] bg-[#121719] text-zinc-100 flex justify-center items-stretch selection:bg-[#00D2B4] selection:text-white font-sans antialiased w-full relative ${className}`}
+      className={`${
+        isTransferScreen ? 'h-[100dvh] max-h-[100dvh] overflow-hidden' : 'min-h-screen min-h-[100dvh]'
+      } bg-[#121719] text-zinc-100 flex justify-center items-stretch selection:bg-[#00D2B4] selection:text-white font-sans antialiased w-full relative ${className}`}
       style={{
         zoom: appScale !== 100 ? `${appScale}%` : undefined,
       }}
     >
-      {/* Viewport Shell - Exact iPhone Proportions & Quentro #121719 theme */}
-      <div className="w-full max-w-full sm:max-w-[430px] min-h-screen min-h-[100dvh] bg-[#121719] relative flex flex-col overflow-x-clip mx-auto shadow-2xl">
+      {/* Viewport Shell - Exact iPhone Proportions & Quentro theme */}
+      <div
+        className={`w-full max-w-full sm:max-w-[430px] ${
+          isTransferScreen ? 'h-[100dvh] max-h-[100dvh] overflow-hidden' : 'min-h-screen min-h-[100dvh]'
+        } bg-[#121719] relative flex flex-col overflow-x-clip mx-auto shadow-2xl`}
+      >
         <AnimatePresence initial={false}>
           {activeScreen === 'home' && (
             <motion.div
@@ -353,7 +359,7 @@ export function QuentroV2Screen({ onClose, initialEventId, className = '' }: Que
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0.9, x: -20 }}
               transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="w-full flex-1 bg-[#121719]"
+              className="w-full flex-1 flex flex-col h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#121719]"
             >
               <TransferTicketScreen
                 selectedTicketCount={selectedTicketIds.length}

@@ -183,9 +183,8 @@ export function antiInvasionWaf(req: Request, res: Response, next: NextFunction)
     }
   }
 
-  // Apply strict HTTP security headers
+  // Apply HTTP security headers (do NOT set X-Frame-Options to allow AI Studio iframe preview)
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');

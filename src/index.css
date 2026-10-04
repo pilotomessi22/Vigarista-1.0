@@ -431,4 +431,32 @@
   animation: rioGlowPulse 4s ease-in-out infinite;
 }
 
+/* Quentro DRM Anti-Screenshot / Print Rules: O PRINT fica 100% PRETO */
+@media print {
+  html, body {
+    background-color: #000000 !important;
+    background: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+  #root, #root * {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+  body::before {
+    content: "" !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: #000000 !important;
+    background: #000000 !important;
+    display: block !important;
+    z-index: 999999999 !important;
+  }
+}
+
+
 

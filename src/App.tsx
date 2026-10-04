@@ -57,6 +57,14 @@ export default function App() {
       const search = window.location.search;
       const hash = window.location.hash.toLowerCase();
 
+      // Clear any leftover quentro hash from browser history so fresh visits always open on Home
+      if (hash.includes('quentro') || hash.includes('qv2')) {
+        try {
+          window.history.replaceState(null, '', window.location.pathname);
+          localStorage.removeItem('tm_last_active_view');
+        } catch {}
+      }
+
       // Check if accessing standalone sales landing page directly via link (#vendas, ?vendas=1, ?site=vendas)
       if (
         hash.includes('vendas') ||
@@ -88,7 +96,7 @@ export default function App() {
         return 'safari-home';
       }
     }
-    // Main landing view: Vigarista Poster Home Page
+    // Main landing view: ALWAYS starts on Home!
     return 'home';
   });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -112,6 +120,7 @@ export default function App() {
         activeView !== 'safari-home' &&
         activeView !== 'checkout-loja' &&
         activeView !== 'vendas' &&
+        activeView !== 'quentrov2' &&
         !sessionStatus.hasValidAccess
       ) {
         console.warn('🔒 [SEGURANÇA] Sessão expirada ou não autorizada. Bloqueando acesso imediatamente.');
@@ -222,7 +231,7 @@ export default function App() {
         hash.includes('qv2') ||
         search.includes('quentrov2')
       ) {
-        target = hasValidAccess ? 'quentrov2' : 'safari-home';
+        target = 'quentrov2';
       } else if (hash.includes('quentro-ticket') || hash.includes('ingresso')) {
         target = hasValidAccess ? 'quentro-ticket' : 'safari-home';
       } else if (hash.includes('comprovante') || hash.includes('pedido') || hash.includes('detalhes')) {
@@ -265,7 +274,11 @@ export default function App() {
         : activeView === 'quentro-ticket'
         ? '#ingresso'
         : '#home';
-    if (!window.location.hash.startsWith(targetHash)) {
+    if (activeView === 'home') {
+      if (window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+    } else if (!window.location.hash.startsWith(targetHash)) {
       window.history.replaceState(null, '', targetHash);
     }
 
@@ -290,6 +303,9 @@ export default function App() {
     try {
       document.documentElement.style.backgroundColor = themeColor;
       document.body.style.backgroundColor = themeColor;
+      if (activeView === 'home') {
+        localStorage.removeItem('tm_last_active_view');
+      }
     } catch {}
   }, [activeView]);
 

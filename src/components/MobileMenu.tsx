@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Ticket, Music, Sparkles, Trophy, Home, HelpCircle, Shield, ChevronRight, User } from 'lucide-react';
+import { X, Ticket, Music, Sparkles, Trophy, Home, HelpCircle, Shield, ChevronRight, User, QrCode } from 'lucide-react';
 import { ActiveView } from '../types';
 import { TicketmasterLogo } from './TicketmasterLogo';
 import { getAuthenticatedUser } from '../utils/security';
@@ -87,6 +87,18 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             <span className="flex items-center gap-3">
               <Ticket className="h-4 w-4 text-[#1E4CD6]" />
               Meus Pedidos & Detalhes
+            </span>
+            <ChevronRight className="h-4 w-4 text-gray-400" />
+          </button>
+
+          <button
+            id="menu-item-quentro-v2"
+            onClick={() => navigateTo('quentrov2')}
+            className="flex w-full items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold text-gray-800 hover:bg-emerald-50 hover:text-emerald-700 transition-colors text-left"
+          >
+            <span className="flex items-center gap-3">
+              <QrCode className="h-4 w-4 text-emerald-600" />
+              Quentro (Ingressos Dinâmicos)
             </span>
             <ChevronRight className="h-4 w-4 text-gray-400" />
           </button>

@@ -556,7 +556,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                                   }}
                                   className="text-[#00D2B4] font-normal text-[13px] tracking-normal shrink-0 inline-block w-fit cursor-pointer"
                                 >
-                                  {ticketCount === 1 ? '1 ingresso' : `${ticketCount} ingressos`}
+                                  {ticketCount === 1 ? '1 Ingresso' : `${ticketCount} Ingressos`}
                                 </span>
                               )}
 
