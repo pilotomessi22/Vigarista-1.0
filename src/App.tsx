@@ -120,7 +120,6 @@ export default function App() {
         activeView !== 'safari-home' &&
         activeView !== 'checkout-loja' &&
         activeView !== 'vendas' &&
-        activeView !== 'quentrov2' &&
         !sessionStatus.hasValidAccess
       ) {
         console.warn('🔒 [SEGURANÇA] Sessão expirada ou não autorizada. Bloqueando acesso imediatamente.');
@@ -168,9 +167,24 @@ export default function App() {
   // Track previous view for smooth return from Quentro v2
   const [previousView, setPreviousView] = useState<ActiveView>('home');
 
-  // Natural and smooth page transition handler with authentic cooldown
+  // Natural and smooth page transition handler with authentic cooldown & strict security gates
   const navigateToView = (nextView: ActiveView, options?: { immediate?: boolean }) => {
     if (nextView === activeView) return;
+
+    // Strict Security Guard: Protected views require a valid key / active session!
+    const sessionStatus = checkAndInvalidateAllSessions();
+    const isProtectedView =
+      nextView === 'order-details' ||
+      nextView === 'quentro-email' ||
+      nextView === 'quentro-ticket' ||
+      nextView === 'quentrov2';
+
+    if (isProtectedView && !sessionStatus.hasValidAccess) {
+      console.warn(`🔒 [SEGURANÇA] Tentativa de acesso bloqueada à tela restrita '${nextView}'. Redirecionando para tela de bloqueio Safari.`);
+      setActiveView('safari-home');
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      return;
+    }
 
     if (nextView === 'quentrov2' && activeView !== 'quentrov2') {
       setPreviousView(activeView);
@@ -231,7 +245,7 @@ export default function App() {
         hash.includes('qv2') ||
         search.includes('quentrov2')
       ) {
-        target = 'quentrov2';
+        target = hasValidAccess ? 'quentrov2' : 'safari-home';
       } else if (hash.includes('quentro-ticket') || hash.includes('ingresso')) {
         target = hasValidAccess ? 'quentro-ticket' : 'safari-home';
       } else if (hash.includes('comprovante') || hash.includes('pedido') || hash.includes('detalhes')) {
@@ -951,8 +965,23 @@ export default function App() {
     }
   };
 
-  // Standalone Quentro v2 App
+  // Standalone Quentro v2 App (Strict Security Guard: Requires active key/session)
   if (activeView === 'quentrov2') {
+    const sessionStatus = checkAndInvalidateAllSessions();
+    if (!sessionStatus.hasValidAccess) {
+      return (
+        <div className="min-h-screen w-full flex justify-center bg-[#1c1c1e] text-white">
+          <SafariStartPage
+            onSearch={handleSafariSearch}
+            onOpenApp={() => navigateToView('home')}
+            onOpenOrder={() => navigateToView('order-details')}
+            onTriggerAnalysis={() => setIsAnalysisModalOpen(true)}
+            onTriggerQuentroV2={() => navigateToView('quentrov2')}
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen min-h-[100dvh] bg-[#121719] w-full flex justify-center relative select-none">
         {/* iOS top status bar safe area filler */}

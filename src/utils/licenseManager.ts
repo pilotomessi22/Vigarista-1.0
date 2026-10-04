@@ -85,6 +85,13 @@ export const decodePassword = (passwordHash: string): string => {
 // Initial default keys seed that are always valid on any device
 const DEFAULT_INITIAL_KEYS: LicenseKey[] = [
   {
+    key: 'VIGARISTA-001A-8MAW-2026',
+    daysValid: 1,
+    createdAt: new Date().toISOString(),
+    isRedeemed: false,
+    status: 'active',
+  },
+  {
     key: 'VIGARISTA-01EH-PMDG-2026',
     daysValid: 30,
     createdAt: new Date().toISOString(),

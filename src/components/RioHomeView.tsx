@@ -171,7 +171,7 @@ export const RioHomeView: React.FC<RioHomeViewProps> = ({
           </div>
         </div>
 
-        {/* 3. Botão Quentrov2 Ultra Clean, Flutuante e com Vidro Escuro Fosco */}
+        {/* Botão Quentrov2 Ultra Clean, Flutuante e com Vidro Escuro Fosco */}
         <div className="w-full px-5 pt-3 pb-6 flex items-center justify-center">
           <button
             id="btn-access-quentrov2-floating"

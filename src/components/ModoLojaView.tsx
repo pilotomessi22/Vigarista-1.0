@@ -141,18 +141,6 @@ export const ModoLojaView: React.FC<ModoLojaViewProps> = ({
 
           {/* ACTION BUTTONS */}
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full max-w-md">
-            {onOpenQuentroV2 && (
-              <button
-                type="button"
-                id="btn-vigarista-open-quentrov2"
-                onClick={onOpenQuentroV2}
-                className="w-full sm:w-auto flex-1 px-6 py-4 rounded-2xl font-black uppercase tracking-wider text-sm sm:text-base text-white bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 shadow-2xl shadow-emerald-600/30 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center gap-2.5 border border-emerald-400/40"
-              >
-                <Ticket className="w-5 h-5 stroke-[2.4]" />
-                <span>Acessar Quentrov2</span>
-              </button>
-            )}
-
             <button
               type="button"
               onClick={onReturnToPanel}

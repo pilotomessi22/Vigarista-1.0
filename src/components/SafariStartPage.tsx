@@ -6,7 +6,7 @@ import { MatrixTransitionOverlay } from './MatrixTransitionOverlay';
 import { MasterAdminPanel } from './MasterAdminPanel';
 import { MasterPasswordPromptModal } from './MasterPasswordPromptModal';
 import { isSecurityUnlocked, getSecurityRemainingSeconds, clearSecurityUnlockCooldown } from '../utils/security';
-import { clearActiveClientSession } from '../utils/licenseManager';
+import { clearActiveClientSession, getActiveClientSession } from '../utils/licenseManager';
 
 interface SafariStartPageProps {
   onSearch: (term: string) => void;
@@ -113,6 +113,21 @@ export const SafariStartPage: React.FC<SafariStartPageProps> = ({
     }
 
     if (isQuentroV2Trigger) {
+      // If access is NOT unlocked with a valid key/session, prompt for client login first!
+      if (!isSecurityUnlocked() && !getActiveClientSession()) {
+        setTimeout(() => setLoadingProgress(90), 80);
+        setTimeout(() => {
+          setLoadingProgress(100);
+          setTimeout(() => {
+            setIsLoadingTransition(false);
+            setLoadingProgress(0);
+            setSearchTerm('');
+            setShowMatrixTransition(true);
+          }, 120);
+        }, 180);
+        return;
+      }
+
       setTimeout(() => setLoadingProgress(90), 80);
       setTimeout(() => {
         setLoadingProgress(100);

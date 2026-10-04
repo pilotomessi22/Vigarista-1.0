@@ -1,8 +1,9 @@
 import React from 'react';
-import { X, Ticket, Music, Sparkles, Trophy, Home, HelpCircle, Shield, ChevronRight, User, QrCode } from 'lucide-react';
+import { X, Ticket, Music, Sparkles, Trophy, Home, HelpCircle, Shield, ChevronRight, User, QrCode, Lock } from 'lucide-react';
 import { ActiveView } from '../types';
 import { TicketmasterLogo } from './TicketmasterLogo';
 import { getAuthenticatedUser } from '../utils/security';
+import { checkAndInvalidateAllSessions } from '../utils/licenseManager';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -17,6 +18,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const sessionStatus = checkAndInvalidateAllSessions();
+  const hasValidAccess = sessionStatus.hasValidAccess;
+
   const currentUser = getAuthenticatedUser();
   const initials = currentUser
     .split(' ')
@@ -26,7 +30,11 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
     .toUpperCase() || 'CF';
 
   const navigateTo = (view: ActiveView) => {
-    setActiveView(view);
+    if ((view === 'quentrov2' || view === 'order-details') && !hasValidAccess) {
+      setActiveView('safari-home');
+    } else {
+      setActiveView(view);
+    }
     onClose();
   };
 
