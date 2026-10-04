@@ -289,8 +289,8 @@ export const MasterAdminPanel: React.FC<MasterAdminPanelProps> = ({
     setTimeout(() => setCopiedKey(null), 2500);
   };
 
-  const handleDeleteKey = (keyStr: string) => {
-    deleteLicenseKey(keyStr);
+  const handleDeleteKey = async (keyStr: string) => {
+    await deleteLicenseKey(keyStr);
     setAdminFeedback({ type: 'success', text: `Key ${keyStr} removida com sucesso.` });
     refreshData();
   };
@@ -314,8 +314,8 @@ export const MasterAdminPanel: React.FC<MasterAdminPanelProps> = ({
     setAdminFeedback(null);
   };
 
-  const handleSavePassword = (username: string) => {
-    const res = updateUserPassword(username, newPasswordInput);
+  const handleSavePassword = async (username: string) => {
+    const res = await updateUserPassword(username, newPasswordInput);
     if (res.success) {
       setAdminFeedback({ type: 'success', text: res.message });
       setEditingUser(null);
@@ -356,8 +356,8 @@ export const MasterAdminPanel: React.FC<MasterAdminPanelProps> = ({
     refreshData();
   };
 
-  const handleDeleteUserAccount = (username: string) => {
-    deleteUser(username);
+  const handleDeleteUserAccount = async (username: string) => {
+    await deleteUser(username);
     setAdminFeedback({ type: 'success', text: `Usuário "${username}" removido com sucesso.` });
     refreshData();
   };

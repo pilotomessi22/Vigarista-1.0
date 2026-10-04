@@ -203,8 +203,6 @@ export const ClientAuthModal: React.FC<ClientAuthModalProps> = ({
           setIsLoading(false);
           resetFailedAttempts();
           hackerAudio.playAccessGrantedSound();
-          // Set 5-minute cooldown for Vigarista
-          setSecurityUnlockCooldown(5 * 60 * 1000, username.trim());
           // Manage Remember Me persistence
           if (rememberMe) {
             localStorage.setItem(STORAGE_KEY_REMEMBERED_USERNAME, username.trim());
@@ -275,8 +273,6 @@ export const ClientAuthModal: React.FC<ClientAuthModalProps> = ({
           setIsLoading(false);
           resetFailedAttempts();
           hackerAudio.playAccessGrantedSound();
-          // Set 5-minute cooldown for Vigarista
-          setSecurityUnlockCooldown(5 * 60 * 1000, result.user.username);
           if (rememberMe) {
             localStorage.setItem(STORAGE_KEY_REMEMBERED_USERNAME, result.user.username);
             localStorage.setItem(STORAGE_KEY_REMEMBER_ME, 'true');

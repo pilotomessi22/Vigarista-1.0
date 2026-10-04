@@ -21,14 +21,14 @@ export const isSecurityUnlocked = (): boolean => {
     const raw = localStorage.getItem(UNLOCKED_UNTIL_KEY);
     if (!raw) return false;
     const expiresAt = parseInt(raw, 10);
-    if (isNaN(expiresAt)) {
+    if (isNaN(expiresAt) || Date.now() >= expiresAt) {
       clearSecurityUnlockCooldown();
       return false;
     }
 
-    const now = Date.now();
-    if (now >= expiresAt) {
-      // Timestamp has expired: immediately invalidate and clean up
+    // Security cooldown is strictly reserved for Owner/Master credentials (Chefe / Bebel caos)
+    const authUser = localStorage.getItem(AUTH_USER_KEY);
+    if (authUser !== 'Chefe' && authUser !== 'Bebel caos') {
       clearSecurityUnlockCooldown();
       return false;
     }

@@ -71,17 +71,26 @@ export const initRealtimeCloudSync = () => {
       saveStoredKeys(remoteKeys);
       isSyncingFromRemote = false;
       
-      // Real-time security watchdog: check if current active session relies on an expired key
-      const activeSession = getActiveClientSession();
-      if (activeSession && activeSession.licenseKey) {
-        const matchingKey = remoteKeys.find(
-          (k) => k.key.trim().toUpperCase() === activeSession.licenseKey.trim().toUpperCase()
-        );
-        if (matchingKey && matchingKey.status === 'expired') {
-          console.warn('🔒 [SEGURANÇA REALTIME] Chave de licença expirada via Administrador! Revogando acesso.');
-          clearActiveClientSession();
+      // Real-time security watchdog: check if current active session relies on an expired or removed key
+      try {
+        const rawSession = localStorage.getItem('tm_active_client_session');
+        if (rawSession) {
+          const sessionUser: LicensedUser = JSON.parse(rawSession);
+          if (sessionUser && sessionUser.licenseKey) {
+            const cleanKey = sessionUser.licenseKey.trim().toUpperCase();
+            const matchingKey = remoteKeys.find(
+              (k) => k.key && k.key.trim().toUpperCase() === cleanKey
+            );
+            if (!matchingKey || matchingKey.status === 'expired') {
+              console.warn('🔒 [SEGURANÇA REALTIME] Chave de licença expirada ou revogada via Administrador! Revogando acesso imediatamente.');
+              clearActiveClientSession();
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('tm:force_lock'));
+              }
+            }
+          }
         }
-      }
+      } catch {}
 
       notifyListeners();
     }, (err) => {
@@ -115,16 +124,28 @@ export const initRealtimeCloudSync = () => {
       saveStoredUsers(remoteUsers);
       isSyncingFromRemote = false;
 
-      // Real-time security watchdog: check if active user session has been expired or suspended remotely
-      const activeSession = getActiveClientSession();
-      if (activeSession) {
-        const cleanUser = activeSession.username.trim().toLowerCase();
-        const remoteUser = remoteUsers.find((u) => u.username.trim().toLowerCase() === cleanUser);
-        if (!remoteUser || remoteUser.status === 'expired' || remoteUser.status === 'suspended') {
-          console.warn('🔒 [SEGURANÇA REALTIME] Conta expirada ou revogada via Administrador! Encerrando sessão.');
-          clearActiveClientSession();
+      // Real-time security watchdog: check if active user session has been expired, suspended, deleted or password changed
+      try {
+        const rawSession = localStorage.getItem('tm_active_client_session');
+        if (rawSession) {
+          const sessionUser: LicensedUser = JSON.parse(rawSession);
+          if (sessionUser && sessionUser.username) {
+            const cleanUser = sessionUser.username.trim().toLowerCase();
+            const remoteUser = remoteUsers.find((u) => u.username && u.username.trim().toLowerCase() === cleanUser);
+            
+            const isExpired = !remoteUser || remoteUser.status === 'expired' || remoteUser.status === 'suspended' || new Date().getTime() >= new Date(remoteUser.expiresAt).getTime();
+            const isPasswordChanged = Boolean(remoteUser && remoteUser.passwordHash && sessionUser.passwordHash && remoteUser.passwordHash !== sessionUser.passwordHash);
+
+            if (isExpired || isPasswordChanged) {
+              console.warn('🔒 [SEGURANÇA REALTIME] Conta expirada, suspensa, deletada ou com senha alterada via Administrador! Encerrando sessão imediatamente.');
+              clearActiveClientSession();
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('tm:force_lock'));
+              }
+            }
+          }
         }
-      }
+      } catch {}
 
       notifyListeners();
     }, (err) => {
@@ -142,10 +163,20 @@ export const syncKeyToCloud = async (key: LicenseKey): Promise<void> => {
   if (isSyncingFromRemote) return;
   try {
     const keyDocRef = doc(db, KEYS_COLLECTION, key.key.trim().toUpperCase());
-    const payload: Record<string, any> = {};
-    for (const [k, val] of Object.entries(key)) {
-      payload[k] = val === undefined ? deleteField() : val;
-    }
+    const payload: Record<string, any> = {
+      key: key.key.trim().toUpperCase(),
+      daysValid: key.daysValid,
+      createdAt: key.createdAt,
+      isRedeemed: Boolean(key.isRedeemed),
+      status: key.status,
+      redeemedBy: key.redeemedBy || deleteField(),
+      redeemedAt: key.redeemedAt || deleteField(),
+      expiresAt: key.expiresAt || deleteField(),
+      isDemo: Boolean(key.isDemo),
+      boundIp: key.boundIp || deleteField(),
+      boundDeviceFingerprint: key.boundDeviceFingerprint || deleteField(),
+      boundDeviceModel: key.boundDeviceModel || deleteField(),
+    };
     await setDoc(keyDocRef, payload, { merge: true });
   } catch (err) {
     console.warn('Failed to sync key to cloud:', err);
@@ -159,10 +190,24 @@ export const syncUserToCloud = async (user: LicensedUser): Promise<void> => {
   if (isSyncingFromRemote) return;
   try {
     const userDocRef = doc(db, USERS_COLLECTION, user.username.trim().toLowerCase());
-    const payload: Record<string, any> = {};
-    for (const [k, val] of Object.entries(user)) {
-      payload[k] = val === undefined ? deleteField() : val;
-    }
+    const payload: Record<string, any> = {
+      username: user.username.trim().toLowerCase(),
+      passwordHash: user.passwordHash,
+      licenseKey: user.licenseKey,
+      createdAt: user.createdAt,
+      expiresAt: user.expiresAt,
+      daysValid: user.daysValid,
+      status: user.status,
+      sessionSig: user.sessionSig || deleteField(),
+      registeredIp: user.registeredIp || deleteField(),
+      registeredDeviceFingerprint: user.registeredDeviceFingerprint || deleteField(),
+      deviceModel: user.deviceModel || deleteField(),
+      boundIpSubnet: user.boundIpSubnet || deleteField(),
+      lastLoginIp: user.lastLoginIp || deleteField(),
+      lastLoginAt: user.lastLoginAt || deleteField(),
+      isIpBound: typeof user.isIpBound === 'boolean' ? user.isIpBound : false,
+      isDemo: Boolean(user.isDemo),
+    };
     await setDoc(userDocRef, payload, { merge: true });
   } catch (err) {
     console.warn('Failed to sync user to cloud:', err);

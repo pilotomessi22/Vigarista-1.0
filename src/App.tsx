@@ -96,8 +96,11 @@ export default function App() {
         return 'safari-home';
       }
     }
-    // Main landing view: ALWAYS starts on Home!
-    return 'home';
+    const sessionStatus = checkAndInvalidateAllSessions();
+    if (sessionStatus.hasValidAccess) {
+      return 'home';
+    }
+    return 'safari-home';
   });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(false);
@@ -114,9 +117,9 @@ export default function App() {
       // Invalidate expired sessions automatically from localStorage
       const sessionStatus = checkAndInvalidateAllSessions();
 
-      // If in an authenticated view but session has expired or is invalid, force return to lock screen
+      // If in ANY authenticated view (home, quentrov2, order-details, quentro-email, quentro-ticket)
+      // but session has expired or is invalid, force return to lock screen immediately!
       if (
-        activeView !== 'home' &&
         activeView !== 'safari-home' &&
         activeView !== 'checkout-loja' &&
         activeView !== 'vendas' &&
@@ -144,23 +147,30 @@ export default function App() {
       }
     };
 
-    const handleSecurityLocked = () => {
-      verifySessionTimestamp();
+    const handleForceLock = () => {
+      console.warn('🔒 [SEGURANÇA REALTIME] Bloqueio forçado acionado! Redirecionando para tela de bloqueio Safari.');
+      setActiveView('safari-home');
+      window.history.replaceState(null, '', '#safari');
+      try {
+        localStorage.removeItem('tm_last_active_view');
+      } catch {}
     };
 
     window.addEventListener('storage', handleStorageEvent);
     window.addEventListener('visibilitychange', verifySessionTimestamp);
     window.addEventListener('focus', verifySessionTimestamp);
-    window.addEventListener('tm:security_locked', handleSecurityLocked);
-    window.addEventListener('tm:client_session_cleared', handleSecurityLocked);
+    window.addEventListener('tm:security_locked', handleForceLock);
+    window.addEventListener('tm:client_session_cleared', handleForceLock);
+    window.addEventListener('tm:force_lock', handleForceLock);
 
     return () => {
       clearInterval(intervalId);
       window.removeEventListener('storage', handleStorageEvent);
       window.removeEventListener('visibilitychange', verifySessionTimestamp);
       window.removeEventListener('focus', verifySessionTimestamp);
-      window.removeEventListener('tm:security_locked', handleSecurityLocked);
-      window.removeEventListener('tm:client_session_cleared', handleSecurityLocked);
+      window.removeEventListener('tm:security_locked', handleForceLock);
+      window.removeEventListener('tm:client_session_cleared', handleForceLock);
+      window.removeEventListener('tm:force_lock', handleForceLock);
     };
   }, [activeView]);
 
@@ -174,6 +184,7 @@ export default function App() {
     // Strict Security Guard: Protected views require a valid key / active session!
     const sessionStatus = checkAndInvalidateAllSessions();
     const isProtectedView =
+      nextView === 'home' ||
       nextView === 'order-details' ||
       nextView === 'quentro-email' ||
       nextView === 'quentro-ticket' ||
@@ -190,7 +201,7 @@ export default function App() {
       setPreviousView(activeView);
     }
 
-    if (options?.immediate || nextView === 'home' || nextView === 'safari-home') {
+    if (options?.immediate || nextView === 'safari-home') {
       setActiveView(nextView);
       window.scrollTo({ top: 0, behavior: 'auto' });
       return;
@@ -253,10 +264,10 @@ export default function App() {
       } else if (hash.includes('quentro') || hash.includes('email')) {
         target = hasValidAccess ? 'quentro-email' : 'safari-home';
       } else if (hash.includes('home') || hash.includes('inicio') || hash === '' || hash === '#') {
-        target = 'home';
+        target = hasValidAccess ? 'home' : 'safari-home';
       } else if (hash.includes('safari')) {
         target = 'safari-home';
-      } else if (!hasValidAccess && activeView !== 'home' && activeView !== 'checkout-loja' && activeView !== 'vendas') {
+      } else if (!hasValidAccess && activeView !== 'checkout-loja' && activeView !== 'vendas') {
         target = 'safari-home';
       }
 

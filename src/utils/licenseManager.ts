@@ -268,11 +268,11 @@ export const createDemoTestKey = (): LicenseKey => {
 };
 
 // Delete key
-export const deleteLicenseKey = (keyString: string): void => {
+export const deleteLicenseKey = async (keyString: string): Promise<void> => {
   const cleanKey = keyString.trim().toUpperCase();
   const keys = getStoredKeys().filter((k) => k.key.trim().toUpperCase() !== cleanKey);
   saveStoredKeys(keys);
-  deleteKeyFromCloud(cleanKey);
+  await deleteKeyFromCloud(cleanKey);
 };
 
 // Retrieve all users
@@ -720,8 +720,11 @@ export const clearActiveClientSession = (): void => {
   try {
     localStorage.removeItem(SESSION_STORAGE_KEY);
     localStorage.removeItem('tm_last_active_view');
+    clearSecurityUnlockCooldown();
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('tm:client_session_cleared'));
+      window.dispatchEvent(new CustomEvent('tm:security_locked'));
+      window.dispatchEvent(new CustomEvent('tm:force_lock'));
     }
   } catch {}
 };
@@ -736,7 +739,7 @@ export const checkAndInvalidateAllSessions = (): {
   username?: string;
   remainingSeconds?: number;
 } => {
-  // 1. Check Owner/Security Passcode Cooldown
+  // 1. Check Owner/Security Passcode Cooldown (strictly reserved for 'Chefe' or 'Bebel caos')
   if (isSecurityUnlocked()) {
     return {
       hasValidAccess: true,
@@ -772,10 +775,10 @@ export const getRemainingDays = (expiresAtISO: string, status?: string): number 
 };
 
 // Admin update of customer password
-export const updateUserPassword = (
+export const updateUserPassword = async (
   username: string,
   newPassword: string
-): { success: boolean; message: string } => {
+): Promise<{ success: boolean; message: string }> => {
   const cleanUsername = username.trim().toLowerCase();
   const cleanPassword = newPassword.trim();
 
@@ -791,7 +794,7 @@ export const updateUserPassword = (
 
   users[index].passwordHash = encodePassword(cleanPassword);
   saveStoredUsers(users);
-  syncUserToCloud(users[index]);
+  await syncUserToCloud(users[index]);
 
   // If user is currently active session, update their session too
   const currentSession = getActiveClientSession();
@@ -804,11 +807,11 @@ export const updateUserPassword = (
 };
 
 // Delete user account
-export const deleteUser = (username: string): void => {
+export const deleteUser = async (username: string): Promise<void> => {
   const cleanUsername = username.trim().toLowerCase();
   const users = getStoredUsers().filter((u) => u.username.toLowerCase() !== cleanUsername);
   saveStoredUsers(users);
-  deleteUserFromCloud(cleanUsername);
+  await deleteUserFromCloud(cleanUsername);
 
   // If active session was this user, clear session
   const currentSession = getActiveClientSession();
