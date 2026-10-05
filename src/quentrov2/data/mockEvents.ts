@@ -23,7 +23,7 @@ export const initialEvents: ConcertEvent[] = [
     dayNumber: '28',
     monthYear: 'Outubro 2026',
     fullDate: 'Quarta-feira, 28/10/2026 · 20:00hs',
-    coverImage: '/bts-poster-square.jpg',
+    coverImage: '/bts-poster-square.webp',
     status: 'upcoming',
     tickets: [
       {
@@ -77,7 +77,7 @@ export const initialEvents: ConcertEvent[] = [
     dayNumber: '30',
     monthYear: 'Outubro 2026',
     fullDate: 'Sexta-feira, 30/10/2026 · 20:00hs',
-    coverImage: '/bts-poster-square.jpg',
+    coverImage: '/bts-poster-square.webp',
     status: 'upcoming',
     tickets: [
       {
@@ -117,7 +117,7 @@ export const initialEvents: ConcertEvent[] = [
     dayNumber: '31',
     monthYear: 'Outubro 2026',
     fullDate: 'Sábado 31 20:00hs',
-    coverImage: '/bts-poster-square.jpg',
+    coverImage: '/bts-poster-square.webp',
     status: 'upcoming',
     tickets: [
       {

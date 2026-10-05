@@ -38,8 +38,14 @@ import { initCommercialSecurityShield } from './utils/securityShield';
 import { initAntiTamperProtection } from './utils/antiTamper';
 import { initRealtimeCloudSync } from './utils/firebaseSync';
 import { SiteAnalysisModal } from './components/SiteAnalysisModal';
+import { preloadCriticalImages } from './utils/imagePreloader';
 
 export default function App() {
+  // Preload and decode all critical poster assets directly into GPU memory to eliminate screen transition flash
+  useEffect(() => {
+    preloadCriticalImages();
+  }, []);
+
   // Initialize Real-time Cloud Synchronization (Firebase Firestore)
   useEffect(() => {
     initRealtimeCloudSync();

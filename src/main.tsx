@@ -62,23 +62,23 @@ class RootErrorBoundary extends Component<Props, State> {
   }
 }
 
-// Immediate Service Worker registration for Android WebAPK & PWA support
+// Non-blocking Service Worker registration on load for maximum initial render speed
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   const registerSW = () => {
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })
       .then((reg) => {
-        console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
+        reg.update().catch(() => {});
       })
       .catch((err) => {
         console.warn('[PWA] ServiceWorker registration failed:', err);
       });
   };
 
-  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  if (document.readyState === 'complete') {
     registerSW();
   } else {
-    window.addEventListener('DOMContentLoaded', registerSW);
+    window.addEventListener('load', registerSW);
   }
 }
 

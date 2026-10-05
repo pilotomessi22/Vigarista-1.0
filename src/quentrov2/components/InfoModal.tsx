@@ -31,10 +31,12 @@ export const InfoModal: React.FC<InfoModalProps> = ({ event, onClose }) => {
           {/* Official Tour Poster */}
           <div className="w-full rounded-2xl overflow-hidden border border-zinc-800 bg-[#121214] shadow-lg flex items-center justify-center">
             <img
-              src={event.coverImage || '/bts-poster-full.jpg'}
+              src={event.coverImage || '/bts-poster-full.webp'}
               alt={event.title}
               className="w-full h-auto max-h-[460px] object-contain rounded-2xl select-none"
               referrerPolicy="no-referrer"
+              loading="eager"
+              decoding="async"
             />
           </div>
 

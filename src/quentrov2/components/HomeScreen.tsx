@@ -509,10 +509,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             className="w-[78px] h-[78px] shrink-0 bg-black/40 overflow-hidden relative select-none rounded-[12px]"
                           >
                             <img
-                              src={event.coverImage || '/bts-poster-square.jpg'}
+                              src={event.coverImage || '/bts-poster-square.webp'}
                               alt={event.title}
                               className="w-full h-full object-cover block select-none pointer-events-none"
                               loading="eager"
+                              decoding="async"
                             />
                           </div>
 

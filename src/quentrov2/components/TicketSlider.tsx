@@ -1015,16 +1015,18 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                   onClick={() =>
                     handleSetBanner(
                       'custom',
-                      event.coverImage || '/bts-poster-square.jpg'
+                      event.coverImage || '/bts-poster-square.webp'
                     )
                   }
                   className="w-full p-3 rounded-xl bg-[#252E2E] hover:bg-[#2D3737] border border-zinc-700/60 active:scale-[0.99] flex items-center justify-between transition-all cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <img
-                      src={event.coverImage || '/bts-poster-square.jpg'}
+                      src={event.coverImage || '/bts-poster-square.webp'}
                       alt="Pôster"
                       className="w-10 h-7 rounded object-cover"
+                      loading="eager"
+                      decoding="async"
                     />
                     <span className="text-xs font-semibold text-zinc-200">
                       Pôster Oficial do Show
@@ -1032,7 +1034,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                   </div>
                   {currentTicket.bannerType === 'custom' &&
                     currentTicket.bannerImage ===
-                      (event.coverImage || '/bts-poster-square.jpg') && (
+                      (event.coverImage || '/bts-poster-square.webp') && (
                       <Check className="w-4 h-4 text-[#00D2B4] stroke-[3]" />
                     )}
                 </button>

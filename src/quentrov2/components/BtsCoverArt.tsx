@@ -9,7 +9,7 @@ interface BtsCoverArtProps {
 
 export const BtsCoverArt: React.FC<BtsCoverArtProps> = ({
   className = '',
-  imageUrl = '/bts-poster-square.jpg',
+  imageUrl = '/bts-poster-square.webp',
   alt = 'BTS WORLD TOUR ARIRANG',
 }) => {
   return (
@@ -18,11 +18,12 @@ export const BtsCoverArt: React.FC<BtsCoverArtProps> = ({
       style={{ aspectRatio: '1/1' }}
     >
       <img
-        src={imageUrl || '/bts-poster-square.jpg'}
+        src={imageUrl || '/bts-poster-square.webp'}
         alt={alt}
         className="w-full h-full object-cover object-center select-none pointer-events-none block"
         referrerPolicy="no-referrer"
         loading="eager"
+        decoding="async"
       />
     </div>
   );

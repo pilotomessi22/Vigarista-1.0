@@ -270,10 +270,11 @@ export const IngressosListScreen: React.FC<IngressosListScreenProps> = ({
               >
                 <div className="w-[78px] h-[78px] rounded-[12px] overflow-hidden bg-black/40 flex items-center justify-center border border-white/[0.04]">
                   <img
-                    src={event.coverImage || '/bts-poster-square.jpg'}
+                    src={event.coverImage || '/bts-poster-square.webp'}
                     alt={event.title}
                     className="w-full h-full object-cover block pointer-events-none select-none"
                     loading="eager"
+                    decoding="async"
                   />
                 </div>
               </div>

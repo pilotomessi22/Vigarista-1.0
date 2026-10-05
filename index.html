@@ -11,11 +11,6 @@
     <meta name="twitter:card" content="summary_large_image" />
     
 
-    <!-- Cache-Control to prevent stale builds -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    
     <!-- PWA & Mobile Web App meta tags for Android & iOS -->
     <meta name="theme-color" content="#141C1D" />
     <meta name="application-name" content="Quentro" />
@@ -30,8 +25,9 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=4" />
     <link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png?v=4" />
 
-    <!-- Preload poster image for instantaneous mobile loading -->
+    <!-- Preload key mobile assets for instantaneous 0ms display -->
     <link rel="preload" as="image" href="/vigarista-poster.webp" type="image/webp" />
+    <link rel="preload" as="image" href="/bts-poster-square.webp" type="image/webp" />
 
     <script>
       (function() {
@@ -43,9 +39,6 @@
           var isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
           if (isIos) {
             document.documentElement.classList.add('is-ios');
-          }
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js?v=7', { scope: '/' }).catch(function() {});
           }
         } catch (e) {}
       })();
@@ -65,7 +58,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
-    <link href="https://fonts.cdnfonts.com/css/lemon-milk" rel="stylesheet">
+    <!-- Non-blocking font loading to eliminate initial white screen delay -->
+    <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/lemon-milk" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.cdnfonts.com/css/lemon-milk"></noscript>
   </head>
   <body class="bg-black text-[#1f262d] antialiased selection:bg-[#1E4CD6] selection:text-white font-sans">
     <div id="root"></div>
