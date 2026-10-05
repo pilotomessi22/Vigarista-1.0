@@ -209,7 +209,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 680' : 'ESTUDA: Meia-Entrada - R$ 340';
         autoSection = 'ARQUIBANCADA';
         autoRow = 'Não numerado';
-        autoSeat = 'Livre';
+        autoSeat = '-';
       } else if (/superior/i.test(trimmed)) {
         autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 980' : 'ESTUDA: Meia-Entrada - R$ 490';
         autoSection = 'CADEIRA SUPERIOR';
@@ -333,7 +333,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         categoryBanner: 'MEIA-ENTRADA',
         taxaText: 'ESTUDA: Meia-Entrada - R$ 340',
         row: 'Não numerado',
-        seat: 'Livre',
+        seat: '-',
       },
       {
         sector: 'Arquibancada',
@@ -342,7 +342,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         categoryBanner: 'INTEIRA',
         taxaText: 'INTEIRA: Inteira - R$ 680',
         row: 'Não numerado',
-        seat: 'Livre',
+        seat: '-',
       },
       {
         sector: 'Cadeira Superior',
