@@ -15,6 +15,7 @@ export const EventModal: React.FC<EventModalProps> = ({
 }) => {
   if (!event) return null;
 
+  const [selectedSector, setSelectedSector] = useState<'Pista' | 'Arquibancada' | 'Cadeira Superior' | 'Cadeira Inferior'>('Pista');
   const [ticketType, setTicketType] = useState<'meia' | 'inteira'>('meia');
   const [attendeeName, setAttendeeName] = useState('Agatha Marins');
   const [attendeeCpf, setAttendeeCpf] = useState('156.822.087-14');
@@ -23,8 +24,14 @@ export const EventModal: React.FC<EventModalProps> = ({
   );
   const [step, setStep] = useState<'selection' | 'pix-confirm'>('selection');
 
-  const basePrice = event.priceStart || 625.0;
-  const ticketPrice = ticketType === 'meia' ? basePrice : basePrice * 2;
+  const sectorPriceMap = {
+    Pista: { meia: 625, inteira: 1250 },
+    Arquibancada: { meia: 340, inteira: 680 },
+    'Cadeira Superior': { meia: 490, inteira: 980 },
+    'Cadeira Inferior': { meia: 540, inteira: 1080 },
+  };
+
+  const ticketPrice = sectorPriceMap[selectedSector][ticketType];
   const serviceFee = ticketPrice * 0.2; // 20% standard service fee
   const totalPrice = ticketPrice + serviceFee;
 
@@ -37,7 +44,7 @@ export const EventModal: React.FC<EventModalProps> = ({
       paymentNumber: generatedPaymentNumber,
       eventName: event.title.toUpperCase(),
       location: event.city || event.location,
-      sector: ticketType === 'meia' ? 'Pista - Meia-Entrada' : 'Pista - Inteira',
+      sector: `${selectedSector} - ${ticketType === 'meia' ? 'Meia-Entrada' : 'Inteira'}`,
       ticketPrice: ticketPrice,
       serviceFee: serviceFee,
       totalPrice: totalPrice,
@@ -102,10 +109,36 @@ export const EventModal: React.FC<EventModalProps> = ({
                 </div>
               </div>
 
-              {/* Ticket Type Selection */}
+              {/* Sector Selection */}
               <div>
-                <label className="text-xs font-bold text-gray-700 uppercase tracking-wide block mb-2">
-                  Tipo de Ingresso (Setor Pista)
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wide block mb-1.5">
+                  1. Selecione o Setor
+                </label>
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {(['Pista', 'Arquibancada', 'Cadeira Superior', 'Cadeira Inferior'] as const).map((sec) => (
+                    <button
+                      key={sec}
+                      type="button"
+                      onClick={() => setSelectedSector(sec)}
+                      className={`p-2.5 rounded-xl border text-left transition-all ${
+                        selectedSector === sec
+                          ? 'border-[#0052b4] bg-blue-50/70 text-[#0052b4] ring-1 ring-[#0052b4]'
+                          : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center text-xs font-bold">
+                        <span>{sec}</span>
+                        {selectedSector === sec && <Check className="w-3.5 h-3.5" />}
+                      </div>
+                      <span className="text-[11px] font-normal text-gray-500 block mt-0.5">
+                        A partir de R$ {sectorPriceMap[sec].meia.toFixed(2).replace('.', ',')}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <label className="text-xs font-bold text-gray-700 uppercase tracking-wide block mb-1.5">
+                  2. Tipo de Ingresso ({selectedSector})
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -122,7 +155,7 @@ export const EventModal: React.FC<EventModalProps> = ({
                       {ticketType === 'meia' && <Check className="h-4 w-4 text-[#0052b4]" />}
                     </div>
                     <p className="text-sm font-black text-gray-950 mt-1">
-                      R$ {basePrice.toFixed(2).replace('.', ',')}
+                      R$ {sectorPriceMap[selectedSector].meia.toFixed(2).replace('.', ',')}
                     </p>
                     <span className="text-[10px] text-gray-500">Estudante / Idoso / PCD</span>
                   </button>
@@ -141,7 +174,7 @@ export const EventModal: React.FC<EventModalProps> = ({
                       {ticketType === 'inteira' && <Check className="h-4 w-4 text-[#0052b4]" />}
                     </div>
                     <p className="text-sm font-black text-gray-950 mt-1">
-                      R$ {(basePrice * 2).toFixed(2).replace('.', ',')}
+                      R$ {sectorPriceMap[selectedSector].inteira.toFixed(2).replace('.', ',')}
                     </p>
                     <span className="text-[10px] text-gray-500">Público Geral</span>
                   </button>

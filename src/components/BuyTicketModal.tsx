@@ -15,15 +15,21 @@ export const BuyTicketModal: React.FC<BuyTicketModalProps> = ({
 }) => {
   if (!event) return null;
 
-  const [ticketType, setTicketType] = useState<'meia' | 'inteira' | 'vip'>('meia');
+  const [selectedSector, setSelectedSector] = useState<'Pista' | 'Arquibancada' | 'Cadeira Superior' | 'Cadeira Inferior'>('Pista');
+  const [ticketType, setTicketType] = useState<'meia' | 'inteira'>('meia');
   const [buyerName, setBuyerName] = useState('Agatha Marins');
   const [buyerCpf, setBuyerCpf] = useState('156.822.087-14');
   const [buyerEmail, setBuyerEmail] = useState('marjorie301204@gmail.com');
   const [step, setStep] = useState<'selection' | 'pix-payment'>('selection');
 
-  const basePrice = event.priceStart;
-  const multiplier = ticketType === 'meia' ? 1 : ticketType === 'inteira' ? 2 : 3;
-  const ticketPrice = basePrice * multiplier;
+  const sectorPriceMap = {
+    Pista: { meia: 625, inteira: 1250 },
+    Arquibancada: { meia: 340, inteira: 680 },
+    'Cadeira Superior': { meia: 490, inteira: 980 },
+    'Cadeira Inferior': { meia: 540, inteira: 1080 },
+  };
+
+  const ticketPrice = sectorPriceMap[selectedSector][ticketType];
   const serviceFee = ticketPrice * 0.2; // 20% standard service fee
   const totalPrice = ticketPrice + serviceFee;
 
@@ -36,12 +42,7 @@ export const BuyTicketModal: React.FC<BuyTicketModalProps> = ({
     const randomOrderNumber = Math.floor(70000000 + Math.random() * 9000000).toString();
     const randomPaymentNumber = Math.floor(20000000 + Math.random() * 9000000).toString();
 
-    const sectorLabel =
-      ticketType === 'meia'
-        ? 'Pista - Meia-Entrada'
-        : ticketType === 'inteira'
-        ? 'Pista - Inteira'
-        : 'Camarote VIP Premium';
+    const sectorLabel = `${selectedSector} - ${ticketType === 'meia' ? 'Meia-Entrada' : 'Inteira'}`;
 
     const order: OrderItem = {
       orderNumber: randomOrderNumber,
@@ -92,7 +93,33 @@ export const BuyTicketModal: React.FC<BuyTicketModalProps> = ({
             <form onSubmit={handleCreatePix} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
-                  Selecione a Modalidade
+                  1. Selecione o Setor
+                </label>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {(['Pista', 'Arquibancada', 'Cadeira Superior', 'Cadeira Inferior'] as const).map((sec) => (
+                    <button
+                      key={sec}
+                      type="button"
+                      onClick={() => setSelectedSector(sec)}
+                      className={`p-2.5 rounded-xl border text-left text-xs font-bold transition-all ${
+                        selectedSector === sec
+                          ? 'border-[#0052b4] bg-blue-50/70 text-[#0052b4] ring-1 ring-[#0052b4]'
+                          : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center">
+                        <span>{sec}</span>
+                        {selectedSector === sec && <Check className="w-3.5 h-3.5" />}
+                      </div>
+                      <span className="text-[11px] font-normal text-gray-500 block mt-0.5">
+                        A partir de R$ {sectorPriceMap[sec].meia.toFixed(2).replace('.', ',')}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1.5">
+                  2. Selecione a Modalidade
                 </label>
                 <div className="space-y-2">
                   <label
@@ -111,12 +138,12 @@ export const BuyTicketModal: React.FC<BuyTicketModalProps> = ({
                         className="text-[#0052b4]"
                       />
                       <div>
-                        <p className="text-sm font-bold text-gray-900">Pista - Meia-Entrada</p>
+                        <p className="text-sm font-bold text-gray-900">{selectedSector} - Meia-Entrada</p>
                         <p className="text-xs text-gray-500">Estudante / ID Jovem / Idoso</p>
                       </div>
                     </div>
                     <span className="text-sm font-extrabold text-gray-900">
-                      R$ {basePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      R$ {sectorPriceMap[selectedSector].meia.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </label>
 
@@ -136,12 +163,12 @@ export const BuyTicketModal: React.FC<BuyTicketModalProps> = ({
                         className="text-[#0052b4]"
                       />
                       <div>
-                        <p className="text-sm font-bold text-gray-900">Pista - Inteira</p>
+                        <p className="text-sm font-bold text-gray-900">{selectedSector} - Inteira</p>
                         <p className="text-xs text-gray-500">Acesso Geral ao Evento</p>
                       </div>
                     </div>
                     <span className="text-sm font-extrabold text-gray-900">
-                      R$ {(basePrice * 2).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      R$ {sectorPriceMap[selectedSector].inteira.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </label>
                 </div>

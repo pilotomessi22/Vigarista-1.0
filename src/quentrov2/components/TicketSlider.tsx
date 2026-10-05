@@ -199,7 +199,41 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
     } else if (field === 'categoryBanner') {
       if (onUpdateTicket) onUpdateTicket(currentTicket.id, { categoryBanner: trimmed });
     } else if (field === 'sector') {
-      if (onUpdateTicket) onUpdateTicket(currentTicket.id, { sector: trimmed });
+      const isInteira = /inteira/i.test(currentTicket.category || '') || /inteira/i.test(currentTicket.taxaText || '');
+      let autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 1.250' : 'ESTUDA: Meia-Entrada - R$ 625';
+      let autoSection = trimmed.toUpperCase();
+      let autoRow = currentTicket.row || 'Geral';
+      let autoSeat = currentTicket.seat || '-';
+
+      if (/arquibancada/i.test(trimmed)) {
+        autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 680' : 'ESTUDA: Meia-Entrada - R$ 340';
+        autoSection = 'ARQUIBANCADA';
+        autoRow = 'Nível 2';
+        autoSeat = 'Livre';
+      } else if (/superior/i.test(trimmed)) {
+        autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 980' : 'ESTUDA: Meia-Entrada - R$ 490';
+        autoSection = 'CADEIRA SUPERIOR';
+        autoRow = 'Não numerado';
+      } else if (/inferior/i.test(trimmed)) {
+        autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 1.080' : 'ESTUDA: Meia-Entrada - R$ 540';
+        autoSection = 'CADEIRA INFERIOR';
+        autoRow = 'Não numerado';
+      } else if (/pista/i.test(trimmed)) {
+        autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 1.250' : 'ESTUDA: Meia-Entrada - R$ 625';
+        autoSection = 'PISTA';
+        autoRow = 'Geral';
+        autoSeat = '-';
+      }
+
+      if (onUpdateTicket) {
+        onUpdateTicket(currentTicket.id, {
+          sector: trimmed,
+          section: autoSection,
+          taxaText: autoTaxa,
+          row: autoRow,
+          seat: autoSeat,
+        });
+      }
     } else if (field === 'titular') {
       const trimmedCpf = editCpfValue.trim() || currentTicket.titularCpf || '662.266.173-14';
       if (onUpdateTicket) {
@@ -270,6 +304,124 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
   const qrValue =
     currentTicket.qrData ||
     `https://app.quentro.com/t/${currentTicket.id || '28102026-bts-01'}`;
+
+  // Discreet sector & price switcher when tapping directly on top of the QR code
+  const handleQrClick = () => {
+    const presets = [
+      {
+        sector: 'Pista',
+        section: 'PISTA',
+        category: 'Meia-Entrada',
+        categoryBanner: 'MEIA-ENTRADA',
+        taxaText: 'ESTUDA: Meia-Entrada - R$ 625',
+        row: 'Geral',
+        seat: '-',
+      },
+      {
+        sector: 'Pista',
+        section: 'PISTA',
+        category: 'Inteira',
+        categoryBanner: 'INTEIRA',
+        taxaText: 'INTEIRA: Inteira - R$ 1.250',
+        row: 'Geral',
+        seat: '-',
+      },
+      {
+        sector: 'Arquibancada',
+        section: 'ARQUIBANCADA',
+        category: 'Meia-Entrada',
+        categoryBanner: 'MEIA-ENTRADA',
+        taxaText: 'ESTUDA: Meia-Entrada - R$ 340',
+        row: 'Nível 2',
+        seat: 'Livre',
+      },
+      {
+        sector: 'Arquibancada',
+        section: 'ARQUIBANCADA',
+        category: 'Inteira',
+        categoryBanner: 'INTEIRA',
+        taxaText: 'INTEIRA: Inteira - R$ 680',
+        row: 'Nível 2',
+        seat: 'Livre',
+      },
+      {
+        sector: 'Cadeira Superior',
+        section: 'CADEIRA SUPERIOR',
+        category: 'Meia-Entrada',
+        categoryBanner: 'MEIA-ENTRADA',
+        taxaText: 'ESTUDA: Meia-Entrada - R$ 490',
+        row: 'Não numerado',
+        seat: '-',
+      },
+      {
+        sector: 'Cadeira Superior',
+        section: 'CADEIRA SUPERIOR',
+        category: 'Inteira',
+        categoryBanner: 'INTEIRA',
+        taxaText: 'INTEIRA: Inteira - R$ 980',
+        row: 'Não numerado',
+        seat: '-',
+      },
+      {
+        sector: 'Cadeira Inferior',
+        section: 'CADEIRA INFERIOR',
+        category: 'Meia-Entrada',
+        categoryBanner: 'MEIA-ENTRADA',
+        taxaText: 'ESTUDA: Meia-Entrada - R$ 540',
+        row: 'Não numerado',
+        seat: '-',
+      },
+      {
+        sector: 'Cadeira Inferior',
+        section: 'CADEIRA INFERIOR',
+        category: 'Inteira',
+        categoryBanner: 'INTEIRA',
+        taxaText: 'INTEIRA: Inteira - R$ 1.080',
+        row: 'Não numerado',
+        seat: '-',
+      },
+    ];
+
+    const curSector = (currentTicket.sector || '').toLowerCase();
+    const isCurInteira =
+      /inteira/i.test(currentTicket.category || '') ||
+      /inteira/i.test(currentTicket.taxaText || '');
+
+    let curIdx = presets.findIndex((p) => {
+      const matchSector = curSector.includes(p.sector.toLowerCase());
+      const matchType = isCurInteira
+        ? p.category === 'Inteira'
+        : p.category === 'Meia-Entrada';
+      return matchSector && matchType;
+    });
+
+    if (curIdx === -1) {
+      curIdx = 0;
+    }
+
+    const nextPreset = presets[(curIdx + 1) % presets.length];
+
+    if (onUpdateTicket) {
+      onUpdateTicket(currentTicket.id, {
+        sector: nextPreset.sector,
+        section: nextPreset.section,
+        category: nextPreset.category,
+        categoryBanner: nextPreset.categoryBanner,
+        taxaText: nextPreset.taxaText,
+        row: nextPreset.row,
+        seat: nextPreset.seat,
+      });
+    }
+
+    // Discreet haptic feedback
+    try {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(35);
+      }
+    } catch {}
+
+    showToast(`${nextPreset.sector} · ${nextPreset.category}`);
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-[#121719] text-white w-full select-none font-sans relative">
@@ -531,12 +683,13 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
 
             {/* Lower Section: QR Code (Left) + SETOR & Mais Informação (Right) */}
             <div className="p-4 sm:p-4.5 bg-white flex items-center justify-between gap-4">
-              {/* Dynamic QR Code */}
+              {/* Dynamic QR Code with discreet sector/price switch on tap */}
               <div
                 id="ticket-qr-container"
-                onClick={() => setIsQrZoomed(true)}
-                className="relative w-[122px] h-[122px] sm:w-[130px] sm:h-[130px] shrink-0 bg-white rounded-lg flex items-center justify-center overflow-hidden cursor-pointer group qr-code-protected"
-                title="Clique para ampliar o QR Code"
+                onClick={handleQrClick}
+                onDoubleClick={() => setIsQrZoomed(true)}
+                className="relative w-[122px] h-[122px] sm:w-[130px] sm:h-[130px] shrink-0 bg-white rounded-lg flex items-center justify-center overflow-hidden cursor-pointer group qr-code-protected active:scale-[0.97] transition-transform select-none"
+                title="Toque no QR Code para alternar o setor e valor"
               >
                 <QRCodeSVG
                   value={qrValue}

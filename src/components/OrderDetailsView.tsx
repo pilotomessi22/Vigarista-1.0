@@ -644,31 +644,42 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
     syncOrderChanges(updated);
   };
 
+  // Helper to get exact sector price based on modality (Meia vs Inteira)
+  const getSectorPrice = (sectorName: string): number => {
+    const isInteira = /inteira/i.test(sectorName);
+    if (/arquibancada/i.test(sectorName)) {
+      return isInteira ? 680 : 340;
+    }
+    if (/superior/i.test(sectorName)) {
+      return isInteira ? 980 : 490;
+    }
+    if (/inferior/i.test(sectorName)) {
+      return isInteira ? 1080 : 540;
+    }
+    return isInteira ? 1250 : 625;
+  };
+
   // Helper to toggle sector string seamlessly through available sectors
   const toggleSectorStr = (str: string) => {
     if (!str) return 'Pista - Meia-Entrada';
     
     // Extract suffix if present (e.g., "- Meia-Entrada", "- Inteira", etc.)
-    let suffix = '';
+    let suffix = '- Meia-Entrada';
     const dashIdx = str.indexOf('-');
     if (dashIdx !== -1) {
       suffix = str.substring(dashIdx).trim(); // includes the leading '-'
-    } else if (/meia/i.test(str)) {
-      suffix = '- Meia-Entrada';
     } else if (/inteira/i.test(str)) {
       suffix = '- Inteira';
     }
 
-    if (/pista\s*premium/i.test(str)) {
-      return `Pista ${suffix}`.trim();
-    } else if (/pista/i.test(str)) {
+    if (/pista/i.test(str)) {
       return `Arquibancada ${suffix}`.trim();
     } else if (/arquibancada/i.test(str)) {
-      return `Cadeira Inferior ${suffix}`.trim();
-    } else if (/cadeira\s*inferior/i.test(str)) {
       return `Cadeira Superior ${suffix}`.trim();
-    } else if (/cadeira/i.test(str)) {
-      return `Pista Premium ${suffix}`.trim();
+    } else if (/superior/i.test(str)) {
+      return `Cadeira Inferior ${suffix}`.trim();
+    } else if (/inferior/i.test(str)) {
+      return `Pista ${suffix}`.trim();
     }
     return `Pista ${suffix}`.trim();
   };
@@ -710,10 +721,7 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
 
   const handleToggleSector = () => {
     const nextSector = toggleSectorStr(order.sector);
-    const isArquibancada = /arquibancada/i.test(nextSector);
-    const isCadeira = /cadeira/i.test(nextSector);
-    const isPremium = /premium/i.test(nextSector);
-    const nextTicketPrice = isPremium ? 850 : isCadeira ? 580 : isArquibancada ? 340 : 625;
+    const nextTicketPrice = getSectorPrice(nextSector);
 
     let updatedItems = order.items;
     let nextServiceFee = 0;
@@ -722,10 +730,7 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
     if (order.items && order.items.length > 0) {
       updatedItems = order.items.map((it) => {
         const itemNextSector = toggleSectorStr(it.sector);
-        const itArquibancada = /arquibancada/i.test(itemNextSector);
-        const itCadeira = /cadeira/i.test(itemNextSector);
-        const itPremium = /premium/i.test(itemNextSector);
-        const itemNextPrice = itPremium ? 850 : itCadeira ? 580 : itArquibancada ? 340 : 625;
+        const itemNextPrice = getSectorPrice(itemNextSector);
         return {
           ...it,
           sector: itemNextSector,
@@ -756,7 +761,7 @@ export const OrderDetailsView: React.FC<OrderDetailsViewProps> = ({
       localStorage.setItem(`tm_saved_order_details_${activeOrderSlot}`, JSON.stringify(updated));
       if (activeOrderSlot === '1') localStorage.setItem('tm_saved_order_details', JSON.stringify(updated));
     } catch {}
-    setSaveNotification(`⚡ Setor do Pôster ${activeOrderSlot} atualizado: ${nextSector}`);
+    setSaveNotification(`⚡ Setor atualizado: ${nextSector} (R$ ${nextTicketPrice.toFixed(2).replace('.', ',')})`);
     setTimeout(() => setSaveNotification(null), 3000);
   };
 
