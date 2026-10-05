@@ -5,61 +5,41 @@
   *, ::before, ::after {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
   }
 
-  html {
-    scroll-behavior: smooth;
-    -webkit-text-size-adjust: 100%;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    background-color: #121719 !important;
-    overscroll-behavior: none !important;
-    overscroll-behavior-y: none !important;
-    -webkit-overscroll-behavior: none !important;
-    min-height: 100%;
-    min-height: -webkit-fill-available;
-    min-height: 100dvh;
-  }
-
+  html,
   body {
-    overscroll-behavior: none !important;
-    overscroll-behavior-y: none !important;
-    -webkit-overscroll-behavior: none !important;
-    -webkit-overflow-scrolling: touch;
-    background-color: #121719 !important;
-    min-height: 100%;
-    min-height: -webkit-fill-available;
-    min-height: 100dvh;
-  }
-
-  #root {
-    min-height: 100%;
-    min-height: 100dvh;
-    background-color: transparent;
-  }
-
-  /* When added to iOS Home Screen (standalone mode): completely eliminate rubber-band white edge */
-  html.is-standalone,
-  html.is-standalone body {
     position: fixed;
     width: 100%;
     height: 100%;
     height: 100dvh;
     height: -webkit-fill-available;
-    overflow: hidden;
+    overflow: hidden !important;
     background-color: #121719 !important;
+    overscroll-behavior: none !important;
+    overscroll-behavior-y: none !important;
+    -webkit-overscroll-behavior: none !important;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
   }
 
-  html.is-standalone #root {
+  #root {
     width: 100%;
     height: 100%;
     height: 100dvh;
     height: -webkit-fill-available;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
     overscroll-behavior: contain;
     background-color: #121719 !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
   }
 
   /* GPU-accelerated interactive elements */
@@ -67,11 +47,40 @@
     touch-action: manipulation;
   }
 
-  /* Smooth scrollbars for mobile webview */
-  ::-webkit-scrollbar {
-    width: 0px;
-    height: 0px;
-    background: transparent;
+  /* Universal scrollbar killer: completely removes white scrollbar indicator across iOS WebKit, Safari, Chrome */
+  ::-webkit-scrollbar,
+  *::-webkit-scrollbar,
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  #root::-webkit-scrollbar,
+  div::-webkit-scrollbar,
+  main::-webkit-scrollbar {
+    display: none !important;
+    width: 0px !important;
+    height: 0px !important;
+    background: transparent !important;
+    opacity: 0 !important;
+    -webkit-appearance: none !important;
+  }
+
+  ::-webkit-scrollbar-thumb,
+  *::-webkit-scrollbar-thumb,
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb,
+  #root::-webkit-scrollbar-thumb {
+    display: none !important;
+    background: transparent !important;
+    opacity: 0 !important;
+  }
+
+  ::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-track,
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track,
+  #root::-webkit-scrollbar-track {
+    display: none !important;
+    background: transparent !important;
+    opacity: 0 !important;
   }
 }
 

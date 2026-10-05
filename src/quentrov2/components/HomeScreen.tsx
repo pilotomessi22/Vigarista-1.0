@@ -328,9 +328,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
       {/* Main Content Area */}
       <main
-        className="flex-1 px-4 pt-4 pb-8 w-full flex flex-col"
+        className="flex-1 px-4 pt-3.5 pb-4 w-full flex flex-col"
         style={{
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
         }}
       >
         {/* Inside "Anterior" tab: Option to close Quentro */}
