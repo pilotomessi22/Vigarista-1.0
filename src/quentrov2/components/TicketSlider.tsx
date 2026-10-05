@@ -202,26 +202,26 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
       const isInteira = /inteira/i.test(currentTicket.category || '') || /inteira/i.test(currentTicket.taxaText || '');
       let autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 1.250' : 'ESTUDA: Meia-Entrada - R$ 625';
       let autoSection = trimmed.toUpperCase();
-      let autoRow = '-';
+      let autoRow = currentTicket.row || 'Geral';
       let autoSeat = currentTicket.seat || '-';
 
       if (/arquibancada/i.test(trimmed)) {
         autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 680' : 'ESTUDA: Meia-Entrada - R$ 340';
         autoSection = 'ARQUIBANCADA';
-        autoRow = '-';
+        autoRow = 'Nível 2';
         autoSeat = 'Livre';
       } else if (/superior/i.test(trimmed)) {
         autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 980' : 'ESTUDA: Meia-Entrada - R$ 490';
         autoSection = 'CADEIRA SUPERIOR';
-        autoRow = '-';
+        autoRow = 'Não numerado';
       } else if (/inferior/i.test(trimmed)) {
         autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 1.080' : 'ESTUDA: Meia-Entrada - R$ 540';
         autoSection = 'CADEIRA INFERIOR';
-        autoRow = '-';
+        autoRow = 'Não numerado';
       } else if (/pista/i.test(trimmed)) {
         autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 1.250' : 'ESTUDA: Meia-Entrada - R$ 625';
         autoSection = 'PISTA';
-        autoRow = '-';
+        autoRow = 'Geral';
         autoSeat = '-';
       }
 
@@ -296,8 +296,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
   const displayTitularCpf = currentTicket.titularCpf || '662.266.173-14';
   const displayTaxa = currentTicket.taxaText || 'ESTUDA: Meia-Entrada - R$ 490';
   const displaySection = currentTicket.section || 'CADEIRA SUPERIOR';
-  const rawRow = currentTicket.row || '-';
-  const displayRow = /n[aã]o\s*numerado/i.test(rawRow) ? '-' : rawRow;
+  const displayRow = currentTicket.row || 'Não numerado';
   const displayOpening = currentTicket.openingTime || '16:00';
   const displayStart = currentTicket.startTime || '20:00';
   const displayHashtag = currentTicket.hashtagText || '#OAoVivoÉAgora';
@@ -315,7 +314,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Meia-Entrada',
         categoryBanner: 'MEIA-ENTRADA',
         taxaText: 'ESTUDA: Meia-Entrada - R$ 625',
-        row: '-',
+        row: 'Geral',
         seat: '-',
       },
       {
@@ -324,7 +323,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Inteira',
         categoryBanner: 'INTEIRA',
         taxaText: 'INTEIRA: Inteira - R$ 1.250',
-        row: '-',
+        row: 'Geral',
         seat: '-',
       },
       {
@@ -333,7 +332,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Meia-Entrada',
         categoryBanner: 'MEIA-ENTRADA',
         taxaText: 'ESTUDA: Meia-Entrada - R$ 340',
-        row: '-',
+        row: 'Nível 2',
         seat: 'Livre',
       },
       {
@@ -342,7 +341,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Inteira',
         categoryBanner: 'INTEIRA',
         taxaText: 'INTEIRA: Inteira - R$ 680',
-        row: '-',
+        row: 'Nível 2',
         seat: 'Livre',
       },
       {
@@ -351,7 +350,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Meia-Entrada',
         categoryBanner: 'MEIA-ENTRADA',
         taxaText: 'ESTUDA: Meia-Entrada - R$ 490',
-        row: '-',
+        row: 'Não numerado',
         seat: '-',
       },
       {
@@ -360,7 +359,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Inteira',
         categoryBanner: 'INTEIRA',
         taxaText: 'INTEIRA: Inteira - R$ 980',
-        row: '-',
+        row: 'Não numerado',
         seat: '-',
       },
       {
@@ -369,7 +368,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Meia-Entrada',
         categoryBanner: 'MEIA-ENTRADA',
         taxaText: 'ESTUDA: Meia-Entrada - R$ 540',
-        row: '-',
+        row: 'Não numerado',
         seat: '-',
       },
       {
@@ -378,7 +377,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Inteira',
         categoryBanner: 'INTEIRA',
         taxaText: 'INTEIRA: Inteira - R$ 1.080',
-        row: '-',
+        row: 'Não numerado',
         seat: '-',
       },
     ];
@@ -873,10 +872,10 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
               )}
             </div>
 
-            {/* Field 3: SEÇÃO & FILEIRA (Two columns aligned to Cadeira Superior position) */}
-            <div className="mt-3.5 grid grid-cols-[1fr_115px] sm:grid-cols-[1fr_125px] items-start">
+            {/* Field 3: SEÇÃO & FILEIRA (Two columns) */}
+            <div className="mt-3.5 flex items-start justify-between">
               {/* Left Column: SEÇÃO */}
-              <div className="min-w-0 pr-2">
+              <div className="min-w-0">
                 <span className="text-[10px] font-semibold text-[#8A98A5] tracking-wider uppercase block">
                   SEÇÃO
                 </span>
@@ -950,10 +949,10 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
               </div>
             </div>
 
-            {/* Field 4: ABERTURA & INÍCIO (Two columns aligned to Cadeira Superior position) */}
-            <div className="mt-3.5 grid grid-cols-[1fr_115px] sm:grid-cols-[1fr_125px] items-start">
+            {/* Field 4: ABERTURA & INÍCIO (Two columns) */}
+            <div className="mt-3.5 flex items-start justify-between">
               {/* Left Column: ABERTURA */}
-              <div className="min-w-0 pr-2">
+              <div className="min-w-0">
                 <span className="text-[10px] font-semibold text-[#8A98A5] tracking-wider uppercase block">
                   ABERTURA
                 </span>

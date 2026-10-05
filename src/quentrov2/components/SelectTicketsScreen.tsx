@@ -224,8 +224,7 @@ export const SelectTicketsScreen: React.FC<SelectTicketsScreenProps> = ({
           const displaySector = ticket.sector || 'Pista';
           const displaySection = ticket.section || 'PISTA';
           const displayCategory = ticket.category || 'Meia';
-          const rawRow = ticket.row || '-';
-          const displayRow = /n[aã]o\s*numerado/i.test(rawRow) ? '-' : rawRow;
+          const displayRow = ticket.row || '-';
           const displaySeat = ticket.seat || '-';
           const badgeCategory = getCategoryBadge(displayCategory);
 
