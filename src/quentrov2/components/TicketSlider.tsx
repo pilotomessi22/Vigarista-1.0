@@ -202,26 +202,26 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
       const isInteira = /inteira/i.test(currentTicket.category || '') || /inteira/i.test(currentTicket.taxaText || '');
       let autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 1.250' : 'ESTUDA: Meia-Entrada - R$ 625';
       let autoSection = trimmed.toUpperCase();
-      let autoRow = currentTicket.row || 'Geral';
+      let autoRow = '-';
       let autoSeat = currentTicket.seat || '-';
 
       if (/arquibancada/i.test(trimmed)) {
         autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 680' : 'ESTUDA: Meia-Entrada - R$ 340';
         autoSection = 'ARQUIBANCADA';
-        autoRow = 'Nível 2';
+        autoRow = '-';
         autoSeat = 'Livre';
       } else if (/superior/i.test(trimmed)) {
         autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 980' : 'ESTUDA: Meia-Entrada - R$ 490';
         autoSection = 'CADEIRA SUPERIOR';
-        autoRow = 'Não numerado';
+        autoRow = '-';
       } else if (/inferior/i.test(trimmed)) {
         autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 1.080' : 'ESTUDA: Meia-Entrada - R$ 540';
         autoSection = 'CADEIRA INFERIOR';
-        autoRow = 'Não numerado';
+        autoRow = '-';
       } else if (/pista/i.test(trimmed)) {
         autoTaxa = isInteira ? 'INTEIRA: Inteira - R$ 1.250' : 'ESTUDA: Meia-Entrada - R$ 625';
         autoSection = 'PISTA';
-        autoRow = 'Geral';
+        autoRow = '-';
         autoSeat = '-';
       }
 
@@ -314,7 +314,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Meia-Entrada',
         categoryBanner: 'MEIA-ENTRADA',
         taxaText: 'ESTUDA: Meia-Entrada - R$ 625',
-        row: 'Geral',
+        row: '-',
         seat: '-',
       },
       {
@@ -323,7 +323,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Inteira',
         categoryBanner: 'INTEIRA',
         taxaText: 'INTEIRA: Inteira - R$ 1.250',
-        row: 'Geral',
+        row: '-',
         seat: '-',
       },
       {
@@ -332,7 +332,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Meia-Entrada',
         categoryBanner: 'MEIA-ENTRADA',
         taxaText: 'ESTUDA: Meia-Entrada - R$ 340',
-        row: 'Nível 2',
+        row: '-',
         seat: 'Livre',
       },
       {
@@ -341,7 +341,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Inteira',
         categoryBanner: 'INTEIRA',
         taxaText: 'INTEIRA: Inteira - R$ 680',
-        row: 'Nível 2',
+        row: '-',
         seat: 'Livre',
       },
       {
@@ -350,7 +350,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Meia-Entrada',
         categoryBanner: 'MEIA-ENTRADA',
         taxaText: 'ESTUDA: Meia-Entrada - R$ 490',
-        row: 'Não numerado',
+        row: '-',
         seat: '-',
       },
       {
@@ -359,7 +359,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Inteira',
         categoryBanner: 'INTEIRA',
         taxaText: 'INTEIRA: Inteira - R$ 980',
-        row: 'Não numerado',
+        row: '-',
         seat: '-',
       },
       {
@@ -368,7 +368,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Meia-Entrada',
         categoryBanner: 'MEIA-ENTRADA',
         taxaText: 'ESTUDA: Meia-Entrada - R$ 540',
-        row: 'Não numerado',
+        row: '-',
         seat: '-',
       },
       {
@@ -377,7 +377,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
         category: 'Inteira',
         categoryBanner: 'INTEIRA',
         taxaText: 'INTEIRA: Inteira - R$ 1.080',
-        row: 'Não numerado',
+        row: '-',
         seat: '-',
       },
     ];
