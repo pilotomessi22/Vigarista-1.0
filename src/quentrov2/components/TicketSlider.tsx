@@ -988,13 +988,25 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                 )}
               </div>
 
-              {/* Right Column: INÍCIO */}
-              <div className="min-w-0 text-left">
-                <span className="text-[10px] font-semibold text-[#8A98A5] tracking-wider uppercase block">
+              {/* Right Column: INÍCIO - Expanded comfortable touch target for stealth blackout */}
+              <div
+                id="btn-trigger-stealth-blackout-time"
+                className="min-w-[65px] text-left -m-1.5 p-1.5 rounded-lg cursor-pointer select-none"
+                onClick={() => {
+                  if (editingField !== 'startTime') {
+                    setIsTotalBlackoutActive(true);
+                  }
+                }}
+                title="Toque para ativar tela preta (2 toques: Transferência / 3 toques: Restaurar)"
+              >
+                <span className="text-[10px] font-semibold text-[#8A98A5] tracking-wider uppercase block select-none pointer-events-none">
                   INÍCIO
                 </span>
                 {editingField === 'startTime' ? (
-                  <div className="flex items-center gap-1 mt-0.5">
+                  <div
+                    className="flex items-center gap-1 mt-0.5"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <input
                       type="text"
                       value={editValue}
@@ -1016,11 +1028,11 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                   </div>
                 ) : (
                   <p
-                    id="btn-trigger-stealth-blackout-time"
-                    onClick={() => setIsTotalBlackoutActive(true)}
-                    onDoubleClick={() => startEdit('startTime', displayStart)}
-                    className="text-[15px] font-bold text-black mt-0.5 cursor-pointer hover:text-[#0052CC] transition-colors select-none"
-                    title="Toque no horário para ativar tela preta (2 toques: Transferência / 3 toques: Restaurar)"
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      startEdit('startTime', displayStart);
+                    }}
+                    className="text-[15px] font-bold text-black mt-0.5 hover:text-[#0052CC] transition-colors select-none"
                   >
                     {displayStart}
                   </p>
