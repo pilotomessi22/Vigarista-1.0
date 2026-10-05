@@ -257,15 +257,7 @@ export const SelectTicketsScreen: React.FC<SelectTicketsScreenProps> = ({
               >
                 {/* Top Blue Badge with Rounded Top Corners: MEIA-ENTRADA / INTEIRA */}
                 <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (onUpdateTicket) {
-                      const nextCategory = badgeCategory === 'MEIA-ENTRADA' ? 'Inteira' : 'Meia';
-                      onUpdateTicket(ticket.id, { category: nextCategory });
-                    }
-                  }}
-                  className="w-full bg-[#0055D2] text-white font-bold text-[10.5px] py-1.5 px-1 text-center tracking-wider uppercase leading-none select-none rounded-t-[14px] hover:brightness-110"
-                  title="Toque para alternar Meia / Inteira"
+                  className="w-full bg-[#0055D2] text-white font-bold text-[10.5px] py-1.5 px-1 text-center tracking-wider uppercase leading-none select-none rounded-t-[14px]"
                 >
                   {badgeCategory}
                 </div>
