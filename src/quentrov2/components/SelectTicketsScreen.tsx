@@ -295,14 +295,14 @@ export const SelectTicketsScreen: React.FC<SelectTicketsScreenProps> = ({
                     </div>
                   )}
 
-                  {/* Centered Circle: Distinct dark circle with white/silver border when unselected, Emerald Green with White Checkmark when selected */}
+                  {/* Centered Circle: Solid Black when unselected, Emerald Green with White Checkmark when selected */}
                   <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
                     {isSelected ? (
-                      <div className="w-[40px] h-[40px] rounded-full bg-[#18B88E] text-white flex items-center justify-center shadow-md transition-transform duration-150 scale-100 ring-2 ring-white/20">
+                      <div className="w-[38px] h-[38px] rounded-full bg-[#18B88E] text-white flex items-center justify-center shadow-md transition-transform duration-150 scale-100">
                         <Check className="w-[22px] h-[22px] stroke-[3.4] text-white" />
                       </div>
                     ) : (
-                      <div className="w-[40px] h-[40px] rounded-full bg-[#101418]/85 border-[2.5px] border-white/80 shadow-md transition-transform duration-150 scale-100" />
+                      <div className="w-[38px] h-[38px] rounded-full bg-black shadow-md transition-transform duration-150 scale-100 ring-1 ring-zinc-700/50" />
                     )}
                   </div>
                 </div>
