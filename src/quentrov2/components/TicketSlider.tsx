@@ -291,6 +291,10 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
   const displayTitle = event.title || 'BTS WORLD TOUR ARIRANG';
   const displaySubtitle = event.headerSubtitle || '28/10/26 - MorumBis';
   const displayCategoryBanner = currentTicket.categoryBanner || 'MEIA-ENTRADA';
+  const isInteira =
+    displayCategoryBanner.trim().toUpperCase().includes('INTEIRA') ||
+    (currentTicket.category || '').toUpperCase().includes('INTEIRA') ||
+    (currentTicket.taxaText || '').toUpperCase().includes('INTEIRA');
   const displaySector = currentTicket.sector || 'Cadeira Superior';
   const displayTitular = currentTicket.titularName || 'Fernanda Lucena';
   const displayTitularCpf = currentTicket.titularCpf || '662.266.173-14';
@@ -598,20 +602,28 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
             )}
 
             {/* Ticketmaster Logo Area with Faint Watermark & #OAoVivoÉAgora */}
-            <div className="bg-white py-6 sm:py-7 px-6 w-full flex flex-col items-center justify-center relative select-none overflow-hidden group">
+            <div
+              className={`${
+                isInteira ? 'bg-[#0052CC]' : 'bg-white'
+              } py-6 sm:py-7 px-6 w-full flex flex-col items-center justify-center relative select-none overflow-hidden group transition-colors duration-150`}
+            >
               {/* Subtle background geometric ticket watermark matching IMG_9243.jpeg */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.08]">
+              <div
+                className={`absolute inset-0 flex items-center justify-center pointer-events-none ${
+                  isInteira ? 'opacity-[0.16]' : 'opacity-[0.08]'
+                }`}
+              >
                 <svg
                   className="w-[280px] h-[200px]"
                   viewBox="0 0 200 150"
                   fill="none"
-                  stroke="#1E293B"
+                  stroke={isInteira ? '#FFFFFF' : '#1E293B'}
                   strokeWidth="2.5"
                 >
                   <rect x="25" y="20" width="150" height="90" rx="10" transform="rotate(-6 100 65)" />
                   <line x1="60" y1="20" x2="60" y2="110" strokeDasharray="4 4" transform="rotate(-6 100 65)" />
-                  <circle cx="25" cy="65" r="8" fill="white" />
-                  <circle cx="175" cy="65" r="8" fill="white" />
+                  <circle cx="25" cy="65" r="8" fill={isInteira ? '#0052CC' : 'white'} />
+                  <circle cx="175" cy="65" r="8" fill={isInteira ? '#0052CC' : 'white'} />
                 </svg>
               </div>
 
@@ -627,7 +639,7 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                 <div className="flex flex-col items-center justify-center relative z-10 w-full">
                   <TicketmasterLogo
                     className="w-[230px] sm:w-[250px] h-auto"
-                    color="#0052CC"
+                    color={isInteira ? '#FFFFFF' : '#0052CC'}
                   />
                   {editingField === 'hashtagText' ? (
                     <div className="flex items-center gap-1.5 mt-2">
@@ -653,7 +665,11 @@ export const TicketSlider: React.FC<TicketSliderProps> = ({
                   ) : (
                     <span
                       onClick={() => startEdit('hashtagText', displayHashtag)}
-                      className="text-[13.5px] sm:text-[14px] font-extrabold text-black tracking-tight mt-1.5 cursor-pointer hover:text-[#0052CC] transition-colors"
+                      className={`text-[13.5px] sm:text-[14px] font-extrabold tracking-tight mt-1.5 cursor-pointer transition-colors ${
+                        isInteira
+                          ? 'text-white hover:text-blue-100'
+                          : 'text-black hover:text-[#0052CC]'
+                      }`}
                       title="Clique para editar hashtag"
                     >
                       {displayHashtag}

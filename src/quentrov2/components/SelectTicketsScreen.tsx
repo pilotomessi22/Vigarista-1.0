@@ -19,7 +19,9 @@ interface EditState {
 }
 
 // 100% accurate reproduction of the track/course layout watermark in 3a0a3f88-19f1-40d8-bd62-0e4052e7ff70.jpeg
-const TicketmasterArenaWatermark: React.FC = () => (
+const TicketmasterArenaWatermark: React.FC<{ strokeColor?: string }> = ({
+  strokeColor = '#EAEFF5',
+}) => (
   <svg
     className="absolute inset-0 w-full h-full pointer-events-none select-none z-0"
     viewBox="0 0 100 85"
@@ -29,34 +31,34 @@ const TicketmasterArenaWatermark: React.FC = () => (
     {/* Upper flowing course tracks */}
     <path
       d="M -5 30 L 42 12 L 105 16"
-      stroke="#EAEFF5"
+      stroke={strokeColor}
       strokeWidth="4.5"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
     <path
       d="M 52 14 L 105 40"
-      stroke="#EAEFF5"
+      stroke={strokeColor}
       strokeWidth="4.5"
       strokeLinecap="round"
     />
     {/* Center diagonal thoroughfare */}
     <path
       d="M 10 16 L 88 74"
-      stroke="#EAEFF5"
+      stroke={strokeColor}
       strokeWidth="4.5"
       strokeLinecap="round"
     />
     {/* Lower left boundary and pathway block */}
     <path
       d="M -5 66 L 32 92"
-      stroke="#EAEFF5"
+      stroke={strokeColor}
       strokeWidth="4"
       strokeLinecap="round"
     />
     <path
       d="M 16 52 L 16 82 L 36 82"
-      stroke="#EAEFF5"
+      stroke={strokeColor}
       strokeWidth="4"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -64,7 +66,7 @@ const TicketmasterArenaWatermark: React.FC = () => (
     {/* Lower right venue block */}
     <path
       d="M 64 84 L 92 62 L 92 84"
-      stroke="#EAEFF5"
+      stroke={strokeColor}
       strokeWidth="4"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -240,6 +242,12 @@ export const SelectTicketsScreen: React.FC<SelectTicketsScreenProps> = ({
           const isEditingSeat =
             editing?.type === 'seat' && editing.ticketId === ticket.id;
 
+          const isInteira =
+            badgeCategory === 'INTEIRA' ||
+            (ticket.category || '').toUpperCase().includes('INTEIRA') ||
+            (ticket.taxaText || '').toUpperCase().includes('INTEIRA') ||
+            (ticket.categoryBanner || '').toUpperCase().includes('INTEIRA');
+
           return (
             <div
               key={ticket.id}
@@ -247,25 +255,30 @@ export const SelectTicketsScreen: React.FC<SelectTicketsScreenProps> = ({
               onClick={() => toggleTicket(ticket.id)}
               className="w-full flex flex-row items-stretch gap-[3px] cursor-pointer select-none"
             >
-              {/* Left Independent Card: Ticket Art, Blue Category Banner, Edge-to-Edge Ticketmaster Logo, and Center Circle */}
-              <div
-                className={`w-[114px] sm:w-[122px] shrink-0 rounded-[14px] overflow-hidden flex flex-col items-stretch relative select-none transition-all duration-150 ${
-                  isSelected
-                    ? 'bg-white shadow-md'
-                    : 'bg-[#1F262B]'
-                }`}
-              >
-                {/* Top Blue Badge with Rounded Top Corners: MEIA-ENTRADA / INTEIRA */}
+              {/* Left Independent Card */}
+              {isInteira ? (
+                /* ========================================================
+                   INTEIRA: Solid all-blue background matching IMG_9348.png
+                   - 100% blue from top to bottom
+                   - White Ticketmaster logo & white #OAovivoEAgora
+                   - Subtle white watermark
+                   - Center selection circle
+                   ======================================================== */
                 <div
-                  className="w-full bg-[#0055D2] text-white font-bold text-[10.5px] py-1.5 px-1 text-center tracking-wider uppercase leading-none select-none rounded-t-[14px]"
+                  className="w-[114px] sm:w-[122px] shrink-0 rounded-[14px] overflow-hidden flex flex-col items-center justify-center relative select-none transition-all duration-150 min-h-[110px] bg-[#0055D2] px-0 py-3 shadow-sm"
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    if (onUpdateTicket) {
+                      onUpdateTicket(ticket.id, {
+                        category: 'Meia-Entrada',
+                        categoryBanner: 'MEIA-ENTRADA',
+                      });
+                    }
+                  }}
+                  title="Duplo clique para alternar Meia / Inteira"
                 >
-                  {badgeCategory}
-                </div>
-
-                {/* Substrate Body: Clean Pure White, Edge-to-Edge Ticketmaster Logo, Blueprint Watermark, and #OAovivoAgora */}
-                <div className="flex-1 flex flex-col items-center justify-center px-0 py-2 relative min-h-[92px] bg-white overflow-hidden rounded-b-[14px]">
-                  {/* Arena floor plan watermark matching 3a0a3f88-19f1-40d8-bd62-0e4052e7ff70.jpeg */}
-                  <TicketmasterArenaWatermark />
+                  {/* Subtle white arena floor plan watermark */}
+                  <TicketmasterArenaWatermark strokeColor="rgba(255, 255, 255, 0.16)" />
 
                   {ticket.bannerType === 'custom' && ticket.bannerImage ? (
                     <img
@@ -275,12 +288,12 @@ export const SelectTicketsScreen: React.FC<SelectTicketsScreenProps> = ({
                     />
                   ) : (
                     <div className="w-full flex flex-col items-center justify-center z-10 px-0 select-none">
-                      {/* Ticketmaster Logo spanning edge-to-edge from end to end */}
+                      {/* Ticketmaster Logo pure WHITE */}
                       <TicketmasterLogo
                         className="w-full h-auto block"
-                        color="#0055D2"
+                        color="#FFFFFF"
                       />
-                      <span className="text-[9px] font-bold text-black tracking-tight select-none mt-1 text-center w-full">
+                      <span className="text-[9px] font-bold text-white tracking-tight select-none mt-1 text-center w-full">
                         #OAovivoEAgora
                       </span>
                     </div>
@@ -293,11 +306,75 @@ export const SelectTicketsScreen: React.FC<SelectTicketsScreenProps> = ({
                         <Check className="w-[22px] h-[22px] stroke-[3.4] text-white" />
                       </div>
                     ) : (
-                      <div className="w-[38px] h-[38px] rounded-full bg-black shadow-md transition-transform duration-150 scale-100 ring-1 ring-zinc-700/50" />
+                      <div className="w-[38px] h-[38px] rounded-full bg-[#101416] shadow-md transition-transform duration-150 scale-100 ring-1 ring-white/10" />
                     )}
                   </div>
                 </div>
-              </div>
+              ) : (
+                /* ========================================================
+                   MEIA-ENTRADA: Untouched exact match to existing design
+                   ======================================================== */
+                <div
+                  className={`w-[114px] sm:w-[122px] shrink-0 rounded-[14px] overflow-hidden flex flex-col items-stretch relative select-none transition-all duration-150 ${
+                    isSelected
+                      ? 'bg-white shadow-md'
+                      : 'bg-[#1F262B]'
+                  }`}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    if (onUpdateTicket) {
+                      onUpdateTicket(ticket.id, {
+                        category: 'Inteira',
+                        categoryBanner: 'INTEIRA',
+                      });
+                    }
+                  }}
+                  title="Duplo clique para alternar Meia / Inteira"
+                >
+                  {/* Top Blue Badge with Rounded Top Corners: MEIA-ENTRADA */}
+                  <div
+                    className="w-full bg-[#0055D2] text-white font-bold text-[10.5px] py-1.5 px-1 text-center tracking-wider uppercase leading-none select-none rounded-t-[14px]"
+                  >
+                    {badgeCategory}
+                  </div>
+
+                  {/* Substrate Body: Clean Pure White, Edge-to-Edge Ticketmaster Logo, Blueprint Watermark, and #OAovivoAgora */}
+                  <div className="flex-1 flex flex-col items-center justify-center px-0 py-2 relative min-h-[92px] bg-white overflow-hidden rounded-b-[14px]">
+                    {/* Arena floor plan watermark matching 3a0a3f88-19f1-40d8-bd62-0e4052e7ff70.jpeg */}
+                    <TicketmasterArenaWatermark strokeColor="#EAEFF5" />
+
+                    {ticket.bannerType === 'custom' && ticket.bannerImage ? (
+                      <img
+                        src={ticket.bannerImage}
+                        alt="Banner"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full flex flex-col items-center justify-center z-10 px-0 select-none">
+                        {/* Ticketmaster Logo spanning edge-to-edge from end to end */}
+                        <TicketmasterLogo
+                          className="w-full h-auto block"
+                          color="#0055D2"
+                        />
+                        <span className="text-[9px] font-bold text-black tracking-tight select-none mt-1 text-center w-full">
+                          #OAovivoEAgora
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Centered Circle: Solid Black when unselected, Emerald Green with White Checkmark when selected */}
+                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+                      {isSelected ? (
+                        <div className="w-[38px] h-[38px] rounded-full bg-[#18B88E] text-white flex items-center justify-center shadow-md transition-transform duration-150 scale-100">
+                          <Check className="w-[22px] h-[22px] stroke-[3.4] text-white" />
+                        </div>
+                      ) : (
+                        <div className="w-[38px] h-[38px] rounded-full bg-black shadow-md transition-transform duration-150 scale-100 ring-1 ring-zinc-700/50" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Right Independent Card: Rounded [14px] on all corners, Pure White when selected, Dark Charcoal (#1F262B) when unselected */}
               <div
