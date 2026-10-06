@@ -259,10 +259,9 @@ export const SelectTicketsScreen: React.FC<SelectTicketsScreenProps> = ({
               {isInteira ? (
                 /* ========================================================
                    INTEIRA: Solid all-blue background matching IMG_9348.png
-                   - 100% blue from top to bottom
+                   - Clean solid royal blue without any white stripes/watermark
                    - White Ticketmaster logo & white #OAovivoEAgora
-                   - Subtle white watermark
-                   - Center selection circle
+                   - Center selection circle (black unselected, green checkmark selected)
                    ======================================================== */
                 <div
                   className="w-[114px] sm:w-[122px] shrink-0 rounded-[14px] overflow-hidden flex flex-col items-center justify-center relative select-none transition-all duration-150 min-h-[110px] bg-[#0055D2] px-0 py-3 shadow-sm"
@@ -277,9 +276,6 @@ export const SelectTicketsScreen: React.FC<SelectTicketsScreenProps> = ({
                   }}
                   title="Duplo clique para alternar Meia / Inteira"
                 >
-                  {/* Subtle white arena floor plan watermark */}
-                  <TicketmasterArenaWatermark strokeColor="rgba(255, 255, 255, 0.16)" />
-
                   {ticket.bannerType === 'custom' && ticket.bannerImage ? (
                     <img
                       src={ticket.bannerImage}
