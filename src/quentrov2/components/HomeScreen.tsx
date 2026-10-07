@@ -495,10 +495,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                               onSelectEvent(event);
                             }
                           }}
-                          className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] overflow-hidden flex flex-row items-center p-2.5 cursor-pointer transition-all duration-150 shadow-sm select-none relative group/card"
-                          style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', minHeight: '86px' }}
+                          className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] overflow-hidden flex flex-row items-center cursor-pointer transition-all duration-150 shadow-sm select-none relative group/card"
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            minHeight: '100px',
+                            maxHeight: '104px',
+                            height: '100px',
+                            borderRadius: '16px',
+                            overflow: 'hidden',
+                          }}
                         >
-                          {/* Left Artwork - Exact 84x84px with rock-solid inline dimensions matching IMG_9363.jpeg */}
+                          {/* Left Artwork - Exact 100x100px aligned with full card height matching 27CDD1A3-666B-4E80-9106-A56A7A3AA5A1.jpeg */}
                           <div
                             onDoubleClick={(e) => {
                               e.stopPropagation();
@@ -507,45 +516,51 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             onTouchStart={() => startLongPressImage(event.id)}
                             onTouchEnd={cancelLongPressImage}
                             onTouchCancel={cancelLongPressImage}
-                            className="w-[84px] h-[84px] shrink-0 bg-black/40 overflow-hidden relative select-none rounded-[12px]"
+                            className="w-[100px] h-[100px] shrink-0 bg-black/40 overflow-hidden relative select-none rounded-[16px]"
                             style={{
-                              width: '84px',
-                              height: '84px',
-                              minWidth: '84px',
-                              maxWidth: '84px',
-                              minHeight: '84px',
-                              maxHeight: '84px',
+                              width: '100px',
+                              height: '100px',
+                              minWidth: '100px',
+                              maxWidth: '100px',
+                              minHeight: '100px',
+                              maxHeight: '100px',
                               flexShrink: 0,
-                              borderRadius: '12px',
+                              borderRadius: '16px',
                               overflow: 'hidden',
                             }}
                           >
                             <img
                               src={event.coverImage || '/bts-poster-square.webp'}
                               alt={event.title}
-                              width="84"
-                              height="84"
+                              width="100"
+                              height="100"
                               className="w-full h-full object-cover block select-none pointer-events-none"
                               style={{
-                                width: '84px',
-                                height: '84px',
-                                minWidth: '84px',
-                                maxWidth: '84px',
-                                minHeight: '84px',
-                                maxHeight: '84px',
+                                width: '100px',
+                                height: '100px',
+                                minWidth: '100px',
+                                maxWidth: '100px',
+                                minHeight: '100px',
+                                maxHeight: '100px',
                                 objectFit: 'cover',
                                 display: 'block',
-                                borderRadius: '12px',
+                                borderRadius: '16px',
                               }}
                               loading="eager"
                               decoding="async"
                             />
                           </div>
 
-                          {/* Right Content Area: Exact closely-spaced 3-line layout matching IMG_9363.jpeg */}
+                          {/* Right Content Area: Exact closely-spaced 3-line layout matching 27CDD1A3-666B-4E80-9106-A56A7A3AA5A1.jpeg */}
                           <div
-                            className="flex-1 min-w-0 flex flex-col justify-center ml-3 space-y-1"
-                            style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+                            className="flex-1 min-w-0 flex flex-col justify-center pl-4 pr-3.5 py-2.5 space-y-1"
+                            style={{
+                              flex: 1,
+                              minWidth: 0,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'center',
+                            }}
                           >
                             {/* Top Meta Line: "2 ingressos" (cyan) + "Sábado 31 20:00hs" (gray) */}
                             <div className="flex items-center gap-3.5 leading-none overflow-hidden">
