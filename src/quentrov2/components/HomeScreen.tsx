@@ -495,9 +495,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                               onSelectEvent(event);
                             }
                           }}
-                          className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] overflow-hidden flex flex-row items-center p-3 cursor-pointer transition-all duration-150 shadow-sm select-none relative group/card"
+                          className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] overflow-hidden flex flex-row items-center p-2 sm:p-2.5 cursor-pointer transition-all duration-150 shadow-sm select-none relative group/card min-h-[88px]"
                         >
-                          {/* Left Square Artwork (Locked to exact 78x78px inset) */}
+                          {/* Left Artwork - Enlarged and aligned with card height (94x82px, strictly locked) */}
                           <div
                             onDoubleClick={(e) => {
                               e.stopPropagation();
@@ -506,19 +506,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             onTouchStart={() => startLongPressImage(event.id)}
                             onTouchEnd={cancelLongPressImage}
                             onTouchCancel={cancelLongPressImage}
-                            className="w-[78px] h-[78px] min-w-[78px] min-h-[78px] max-w-[78px] max-h-[78px] shrink-0 bg-black/40 overflow-hidden relative select-none rounded-[12px]"
+                            className="w-[94px] h-[82px] min-w-[94px] min-h-[82px] max-w-[94px] max-h-[82px] shrink-0 bg-black/40 overflow-hidden relative select-none rounded-[13px]"
                           >
                             <img
                               src={event.coverImage || '/bts-poster-square.webp'}
                               alt={event.title}
-                              className="w-[78px] h-[78px] max-w-[78px] max-h-[78px] object-cover block select-none pointer-events-none"
+                              className="w-[94px] h-[82px] min-w-[94px] min-h-[82px] max-w-[94px] max-h-[82px] object-cover block select-none pointer-events-none"
                               loading="eager"
                               decoding="async"
                             />
                           </div>
 
-                          {/* Right Content Area: Exact closely-spaced 3-line layout matching IMG_8628.jpeg */}
-                          <div className="flex-1 min-w-0 flex flex-col justify-center ml-3.5 space-y-1">
+                          {/* Right Content Area: Exact closely-spaced 3-line layout matching IMG_9363.jpeg */}
+                          <div className="flex-1 min-w-0 flex flex-col justify-center ml-3 space-y-1">
                             {/* Top Meta Line: "2 ingressos" (cyan) + "Sábado 31 20:00hs" (gray) */}
                             <div className="flex items-center gap-3.5 leading-none overflow-hidden">
                               {/* Ticket Count */}
