@@ -495,18 +495,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                               onSelectEvent(event);
                             }
                           }}
-                          className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] overflow-hidden flex flex-row items-center p-2.5 cursor-pointer transition-all duration-150 shadow-sm select-none relative group/card"
+                          className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] overflow-hidden flex flex-row items-stretch cursor-pointer transition-all duration-150 shadow-sm select-none relative group/card"
                           style={{
                             display: 'flex',
                             flexDirection: 'row',
-                            alignItems: 'center',
-                            minHeight: '88px',
+                            alignItems: 'stretch',
+                            height: '92px',
+                            minHeight: '92px',
                             maxHeight: '92px',
                             borderRadius: '16px',
                             overflow: 'hidden',
                           }}
                         >
-                          {/* Left Artwork - Square 82x82px with 12px rounded corners matching 27CDD1A3-666B-4E80-9106-A56A7A3AA5A1.jpeg */}
+                          {/* Left Artwork - Exactly 92x92px aligned edge-to-edge with card height */}
                           <div
                             onDoubleClick={(e) => {
                               e.stopPropagation();
@@ -515,44 +516,42 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             onTouchStart={() => startLongPressImage(event.id)}
                             onTouchEnd={cancelLongPressImage}
                             onTouchCancel={cancelLongPressImage}
-                            className="w-[82px] h-[82px] shrink-0 bg-black/40 overflow-hidden relative select-none rounded-[12px]"
+                            className="w-[92px] h-[92px] shrink-0 bg-black/40 overflow-hidden relative select-none"
                             style={{
-                              width: '82px',
-                              height: '82px',
-                              minWidth: '82px',
-                              maxWidth: '82px',
-                              minHeight: '82px',
-                              maxHeight: '82px',
+                              width: '92px',
+                              height: '92px',
+                              minWidth: '92px',
+                              maxWidth: '92px',
+                              minHeight: '92px',
+                              maxHeight: '92px',
                               flexShrink: 0,
-                              borderRadius: '12px',
                               overflow: 'hidden',
                             }}
                           >
                             <img
                               src={event.coverImage || '/bts-poster-square.webp'}
                               alt={event.title}
-                              width="82"
-                              height="82"
+                              width="92"
+                              height="92"
                               className="w-full h-full object-cover block select-none pointer-events-none"
                               style={{
-                                width: '82px',
-                                height: '82px',
-                                minWidth: '82px',
-                                maxWidth: '82px',
-                                minHeight: '82px',
-                                maxHeight: '82px',
+                                width: '92px',
+                                height: '92px',
+                                minWidth: '92px',
+                                maxWidth: '92px',
+                                minHeight: '92px',
+                                maxHeight: '92px',
                                 objectFit: 'cover',
                                 display: 'block',
-                                borderRadius: '12px',
                               }}
                               loading="eager"
                               decoding="async"
                             />
                           </div>
 
-                          {/* Right Content Area: Spacious 3-line layout with clean breathing room */}
+                          {/* Right Content Area: Spacious 3-line layout with clean internal padding */}
                           <div
-                            className="flex-1 min-w-0 flex flex-col justify-center ml-3.5 space-y-1"
+                            className="flex-1 min-w-0 flex flex-col justify-center px-4 py-2 space-y-1"
                             style={{
                               flex: 1,
                               minWidth: 0,
