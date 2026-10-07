@@ -507,7 +507,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             overflow: 'hidden',
                           }}
                         >
-                          {/* Left Artwork - Exactly 92x92px aligned edge-to-edge with card height */}
+                          {/* Left Artwork - Exactly 92x92px with rounded-[16px] corners matching 27CDD1A3-666B-4E80-9106-A56A7A3AA5A1.jpeg */}
                           <div
                             onDoubleClick={(e) => {
                               e.stopPropagation();
@@ -516,7 +516,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             onTouchStart={() => startLongPressImage(event.id)}
                             onTouchEnd={cancelLongPressImage}
                             onTouchCancel={cancelLongPressImage}
-                            className="w-[92px] h-[92px] shrink-0 bg-black/40 overflow-hidden relative select-none"
+                            className="w-[92px] h-[92px] shrink-0 bg-black/40 overflow-hidden relative select-none rounded-[16px]"
                             style={{
                               width: '92px',
                               height: '92px',
@@ -525,6 +525,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                               minHeight: '92px',
                               maxHeight: '92px',
                               flexShrink: 0,
+                              borderRadius: '16px',
                               overflow: 'hidden',
                             }}
                           >
@@ -533,7 +534,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                               alt={event.title}
                               width="92"
                               height="92"
-                              className="w-full h-full object-cover block select-none pointer-events-none"
+                              className="w-full h-full object-cover block select-none pointer-events-none rounded-[16px]"
                               style={{
                                 width: '92px',
                                 height: '92px',
@@ -543,6 +544,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                                 maxHeight: '92px',
                                 objectFit: 'cover',
                                 display: 'block',
+                                borderRadius: '16px',
                               }}
                               loading="eager"
                               decoding="async"
