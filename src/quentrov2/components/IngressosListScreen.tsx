@@ -255,9 +255,19 @@ export const IngressosListScreen: React.FC<IngressosListScreenProps> = ({
                   onSelectTicket(index);
                 }
               }}
-              className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[18px] overflow-hidden flex items-center p-3 cursor-pointer transition-all duration-150 shadow-sm select-none relative"
+              className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[14px] overflow-hidden flex flex-row items-stretch cursor-pointer transition-all duration-150 shadow-sm select-none relative"
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'stretch',
+                height: '88px',
+                minHeight: '88px',
+                maxHeight: '88px',
+                borderRadius: '14px',
+                overflow: 'hidden',
+              }}
             >
-              {/* Left Poster Thumbnail: rounded square inset with clean corners. Double click or hold (600ms) uploads new cover */}
+              {/* Left Artwork - Exactly 88x88px with subtle 8px rounded corners aligned with card height */}
               <div
                 onDoubleClick={(e) => {
                   e.stopPropagation();
@@ -266,21 +276,60 @@ export const IngressosListScreen: React.FC<IngressosListScreenProps> = ({
                 onTouchStart={startLongPressImage}
                 onTouchEnd={cancelLongPressImage}
                 onTouchCancel={cancelLongPressImage}
-                className="shrink-0 mr-3.5"
+                className="w-[88px] h-[88px] shrink-0 bg-[#f3f3f3] overflow-hidden relative select-none rounded-[8px]"
+                style={{
+                  width: '88px',
+                  height: '88px',
+                  minWidth: '88px',
+                  maxWidth: '88px',
+                  minHeight: '88px',
+                  maxHeight: '88px',
+                  flexShrink: 0,
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                }}
               >
-                <div className="w-[78px] h-[78px] rounded-[12px] overflow-hidden bg-black/40 flex items-center justify-center border border-white/[0.04]">
-                  <img
-                    src={event.coverImage || '/bts-poster-square.webp'}
-                    alt={event.title}
-                    className="w-full h-full object-cover block pointer-events-none select-none"
-                    loading="eager"
-                    decoding="async"
-                  />
-                </div>
+                <img
+                  src={event.coverImage || '/bts-card-oficial.jpeg'}
+                  alt={event.title}
+                  width="88"
+                  height="88"
+                  className="w-full h-full object-contain block select-none pointer-events-none rounded-[8px]"
+                  style={{
+                    width: '88px',
+                    height: '88px',
+                    minWidth: '88px',
+                    maxWidth: '88px',
+                    minHeight: '88px',
+                    maxHeight: '88px',
+                    objectFit: 'contain',
+                    display: 'block',
+                    borderRadius: '8px',
+                  }}
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src.includes('.jpeg')) {
+                      target.src = '/bts-card-oficial.png';
+                    } else if (target.src.includes('.png')) {
+                      target.src = '/bts-card-oficial.jpg';
+                    }
+                  }}
+                  loading="eager"
+                  decoding="async"
+                />
               </div>
 
-              {/* Right Content Area */}
-              <div className="flex-1 min-w-0 flex flex-col justify-between py-1 h-[78px]">
+              {/* Right Content Area: Spacious layout with clean internal padding */}
+              <div
+                className="flex-1 min-w-0 flex flex-col justify-between px-3.5 py-2.5 h-[88px]"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                }}
+              >
                 {/* Title line: e.g. "Pista" */}
                 <div className="w-full flex items-center min-w-0">
                   {isEditingSection ? (
