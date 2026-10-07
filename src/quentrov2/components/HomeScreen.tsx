@@ -495,9 +495,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                               onSelectEvent(event);
                             }
                           }}
-                          className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] overflow-hidden flex flex-row items-center p-2 sm:p-2.5 cursor-pointer transition-all duration-150 shadow-sm select-none relative group/card min-h-[88px]"
+                          className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] overflow-hidden flex flex-row items-center p-2.5 cursor-pointer transition-all duration-150 shadow-sm select-none relative group/card"
+                          style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', minHeight: '86px' }}
                         >
-                          {/* Left Artwork - Enlarged and aligned with card height (94x82px, strictly locked) */}
+                          {/* Left Artwork - Exact 84x84px with rock-solid inline dimensions matching IMG_9363.jpeg */}
                           <div
                             onDoubleClick={(e) => {
                               e.stopPropagation();
@@ -506,19 +507,46 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             onTouchStart={() => startLongPressImage(event.id)}
                             onTouchEnd={cancelLongPressImage}
                             onTouchCancel={cancelLongPressImage}
-                            className="w-[94px] h-[82px] min-w-[94px] min-h-[82px] max-w-[94px] max-h-[82px] shrink-0 bg-black/40 overflow-hidden relative select-none rounded-[13px]"
+                            className="w-[84px] h-[84px] shrink-0 bg-black/40 overflow-hidden relative select-none rounded-[12px]"
+                            style={{
+                              width: '84px',
+                              height: '84px',
+                              minWidth: '84px',
+                              maxWidth: '84px',
+                              minHeight: '84px',
+                              maxHeight: '84px',
+                              flexShrink: 0,
+                              borderRadius: '12px',
+                              overflow: 'hidden',
+                            }}
                           >
                             <img
                               src={event.coverImage || '/bts-poster-square.webp'}
                               alt={event.title}
-                              className="w-[94px] h-[82px] min-w-[94px] min-h-[82px] max-w-[94px] max-h-[82px] object-cover block select-none pointer-events-none"
+                              width="84"
+                              height="84"
+                              className="w-full h-full object-cover block select-none pointer-events-none"
+                              style={{
+                                width: '84px',
+                                height: '84px',
+                                minWidth: '84px',
+                                maxWidth: '84px',
+                                minHeight: '84px',
+                                maxHeight: '84px',
+                                objectFit: 'cover',
+                                display: 'block',
+                                borderRadius: '12px',
+                              }}
                               loading="eager"
                               decoding="async"
                             />
                           </div>
 
                           {/* Right Content Area: Exact closely-spaced 3-line layout matching IMG_9363.jpeg */}
-                          <div className="flex-1 min-w-0 flex flex-col justify-center ml-3 space-y-1">
+                          <div
+                            className="flex-1 min-w-0 flex flex-col justify-center ml-3 space-y-1"
+                            style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+                          >
                             {/* Top Meta Line: "2 ingressos" (cyan) + "Sábado 31 20:00hs" (gray) */}
                             <div className="flex items-center gap-3.5 leading-none overflow-hidden">
                               {/* Ticket Count */}
