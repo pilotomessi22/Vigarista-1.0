@@ -495,9 +495,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                               onSelectEvent(event);
                             }
                           }}
-                          className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] overflow-hidden flex items-center p-3 cursor-pointer transition-all duration-150 shadow-sm select-none relative group/card"
+                          className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] overflow-hidden flex items-stretch cursor-pointer transition-all duration-150 shadow-sm select-none relative group/card min-h-[96px]"
                         >
-                          {/* Left Square Artwork (Rounded inset matching IMG_8628.jpeg) */}
+                          {/* Left Artwork - Aligned with full card height matching original Quentro (79b1b023-146d-42c0-8109-def0c8f8559b.jpeg) */}
                           <div
                             onDoubleClick={(e) => {
                               e.stopPropagation();
@@ -506,7 +506,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             onTouchStart={() => startLongPressImage(event.id)}
                             onTouchEnd={cancelLongPressImage}
                             onTouchCancel={cancelLongPressImage}
-                            className="w-[78px] h-[78px] shrink-0 bg-black/40 overflow-hidden relative select-none rounded-[12px]"
+                            className="w-[96px] sm:w-[102px] shrink-0 bg-black/40 overflow-hidden relative select-none self-stretch"
                           >
                             <img
                               src={event.coverImage || '/bts-poster-square.webp'}
@@ -517,8 +517,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             />
                           </div>
 
-                          {/* Right Content Area: Exact closely-spaced 3-line layout matching IMG_8628.jpeg */}
-                          <div className="flex-1 min-w-0 flex flex-col justify-center ml-3.5 space-y-1">
+                          {/* Right Content Area: Exact closely-spaced 3-line layout with clean internal padding */}
+                          <div className="flex-1 min-w-0 flex flex-col justify-center py-3 pl-3.5 pr-3 space-y-1">
                             {/* Top Meta Line: "2 ingressos" (cyan) + "Sábado 31 20:00hs" (gray) */}
                             <div className="flex items-center gap-3.5 leading-none overflow-hidden">
                               {/* Ticket Count */}
