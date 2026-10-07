@@ -495,9 +495,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                               onSelectEvent(event);
                             }
                           }}
-                          className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] overflow-hidden flex items-stretch cursor-pointer transition-all duration-150 shadow-sm select-none relative group/card h-[74px] sm:h-[76px]"
+                          className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] overflow-hidden flex flex-row items-center p-3 cursor-pointer transition-all duration-150 shadow-sm select-none relative group/card"
                         >
-                          {/* Left Artwork - Exact 74x74 square flush with card height matching IMG_9363.jpeg */}
+                          {/* Left Square Artwork (Locked to exact 78x78px inset) */}
                           <div
                             onDoubleClick={(e) => {
                               e.stopPropagation();
@@ -506,19 +506,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             onTouchStart={() => startLongPressImage(event.id)}
                             onTouchEnd={cancelLongPressImage}
                             onTouchCancel={cancelLongPressImage}
-                            className="w-[74px] h-[74px] sm:w-[76px] sm:h-[76px] shrink-0 bg-black/40 overflow-hidden relative select-none"
+                            className="w-[78px] h-[78px] min-w-[78px] min-h-[78px] max-w-[78px] max-h-[78px] shrink-0 bg-black/40 overflow-hidden relative select-none rounded-[12px]"
                           >
                             <img
                               src={event.coverImage || '/bts-poster-square.webp'}
                               alt={event.title}
-                              className="w-full h-full object-cover block select-none pointer-events-none"
+                              className="w-[78px] h-[78px] max-w-[78px] max-h-[78px] object-cover block select-none pointer-events-none"
                               loading="eager"
                               decoding="async"
                             />
                           </div>
 
-                          {/* Right Content Area: Exact closely-spaced 3-line layout matching IMG_9363.jpeg */}
-                          <div className="flex-1 min-w-0 flex flex-col justify-center py-1.5 pl-3.5 pr-3 space-y-0.5">
+                          {/* Right Content Area: Exact closely-spaced 3-line layout matching IMG_8628.jpeg */}
+                          <div className="flex-1 min-w-0 flex flex-col justify-center ml-3.5 space-y-1">
                             {/* Top Meta Line: "2 ingressos" (cyan) + "Sábado 31 20:00hs" (gray) */}
                             <div className="flex items-center gap-3.5 leading-none overflow-hidden">
                               {/* Ticket Count */}
@@ -637,7 +637,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                                       value: event.title,
                                     });
                                   }}
-                                  className="text-white font-normal text-[14.5px] leading-tight tracking-normal truncate inline-block w-fit max-w-full cursor-pointer uppercase"
+                                  className="text-white font-normal text-[15.5px] leading-tight tracking-normal truncate inline-block w-fit max-w-full cursor-pointer uppercase"
                                 >
                                   {event.title}
                                 </h3>
@@ -679,7 +679,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                                       value: event.venue,
                                     });
                                   }}
-                                  className="text-[#84959E] font-normal text-[12px] leading-none truncate inline-block w-fit max-w-full cursor-pointer"
+                                  className="text-[#84959E] font-normal text-[13.5px] leading-none truncate inline-block w-fit max-w-full cursor-pointer"
                                 >
                                   {event.venue}
                                 </p>
