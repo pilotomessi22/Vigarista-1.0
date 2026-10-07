@@ -1,7 +1,7 @@
 {
   "name": "painelv1-by-messin",
   "private": true,
-  "version": "0.0.2",
+  "version": "0.0.4",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",

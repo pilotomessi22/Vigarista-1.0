@@ -530,7 +530,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                             }}
                           >
                             <img
-                              src={event.coverImage || '/bts-official-poster-card.webp'}
+                              src={event.coverImage || '/bts-card-oficial.jpeg'}
                               alt={event.title}
                               width="88"
                               height="88"
@@ -545,6 +545,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                                 objectFit: 'contain',
                                 display: 'block',
                                 borderRadius: '8px',
+                              }}
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                if (target.src.includes('.jpeg')) {
+                                  target.src = '/bts-card-oficial.png';
+                                } else if (target.src.includes('.png')) {
+                                  target.src = '/bts-card-oficial.jpg';
+                                }
                               }}
                               loading="eager"
                               decoding="async"

@@ -26,7 +26,7 @@ export interface QuentroV2Props {
 }
 
 export function QuentroV2Screen({ onClose, initialEventId, className = '' }: QuentroV2Props) {
-  const STORAGE_KEY = 'quentro_events_v8';
+  const STORAGE_KEY = 'quentro_events_v9';
 
   // Local storage backed state
   const [events, setEvents] = useState<ConcertEvent[]>(() => {
