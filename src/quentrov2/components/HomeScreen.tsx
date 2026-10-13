@@ -688,7 +688,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                                       value: event.title,
                                     });
                                   }}
-                                  className="text-white font-normal text-[15.5px] leading-tight tracking-normal truncate inline-block w-fit max-w-full cursor-pointer uppercase"
+                                  className="text-white font-normal text-[15.5px] leading-tight tracking-normal truncate inline-block max-w-[200px] cursor-pointer uppercase"
                                 >
                                   {event.title}
                                 </h3>
