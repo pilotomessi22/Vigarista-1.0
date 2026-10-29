@@ -81,11 +81,24 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     }, 500);
   };
 
-  const displayedEvents = activeTab === 'proximos' ? events : pastEvents;
+  const isOct28Event = (e: ConcertEvent) =>
+    e.id === 'bts-arirang-28' || e.dayNumber === '28' || Boolean(e.shortDate?.startsWith('28/10'));
+
+  const oct28FromEvents = events.filter(isOct28Event).map((e) => ({
+    ...e,
+    monthYear: !e.monthYear || e.monthYear === 'Março 2025' ? 'Outubro 2026' : e.monthYear,
+  }));
+
+  const displayedEvents =
+    activeTab === 'proximos'
+      ? events.filter((e) => !isOct28Event(e))
+      : oct28FromEvents.length > 0
+      ? oct28FromEvents
+      : pastEvents;
 
   // Group events by monthYear (e.g. "Outubro 2026", matching "Septiembre 2024" in IMG_8610.png)
   const groupedEvents = displayedEvents.reduce((acc, event) => {
-    const key = event.monthYear || 'Próximos';
+    const key = event.monthYear || 'Outubro 2026';
     if (!acc[key]) acc[key] = [];
     acc[key].push(event);
     return acc;
@@ -280,7 +293,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             {/* Notification Bell Button - Exact match to IMG_8627.png */}
             <button
               id="btn-home-notifications"
-              onClick={onOpenNotifications}
+              onClick={onClose || onOpenNotifications}
               className="w-[36px] h-[36px] rounded-[10px] bg-[#182023] active:scale-95 text-[#93A5A5] hover:text-white flex items-center justify-center transition-all cursor-pointer"
               aria-label="Notificações"
             >
@@ -333,35 +346,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
         }}
       >
-        {/* Inside "Anterior" tab: Option to close Quentro */}
-        {activeTab === 'anteriores' && onClose && (
-          <div className="mb-4 pt-1">
-            <button
-              type="button"
-              id="btn-close-quentro-anterior"
-              onClick={onClose}
-              className="w-full bg-[#182023] hover:bg-[#1E272B] active:scale-[0.985] rounded-[16px] p-3.5 flex items-center justify-between transition-all cursor-pointer border border-[#232D33] shadow-sm text-left group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#232D33] flex items-center justify-center text-[#00D2B4] group-hover:scale-105 transition-transform">
-                  <X className="w-4 h-4 stroke-[2.5]" />
-                </div>
-                <div>
-                  <div className="text-[14px] font-semibold text-white">
-                    Fechar Quentro
-                  </div>
-                  <div className="text-[12px] text-[#889B9B]">
-                    Voltar ao aplicativo principal
-                  </div>
-                </div>
-              </div>
-              <span className="text-xs font-semibold text-[#00D2B4] bg-[#00D2B4]/10 px-3 py-1.5 rounded-full border border-[#00D2B4]/20 group-hover:bg-[#00D2B4]/20 transition-colors">
-                Fechar
-              </span>
-            </button>
-          </div>
-        )}
-
         {/* Display: Events List OR Empty State */}
         {!hasEvents ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-4 pb-20 pt-6">
@@ -375,26 +359,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 ? 'Seus ingressos utilizados ou passados serão listados aqui.'
                 : 'Ao comprar seus ingressos, selecione Quentro como método de entrega.'}
             </p>
-            {activeTab === 'anteriores' && onClose ? (
-              <button
-                type="button"
-                onClick={onClose}
-                className="mt-6 px-5 py-2.5 rounded-full bg-[#182023] hover:bg-[#232D33] text-[#00D2B4] border border-[#232D33] text-[13.5px] font-medium transition-all active:scale-95 cursor-pointer flex items-center gap-2"
-              >
-                <X className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Fechar Quentro</span>
-              </button>
-            ) : (
-              <button
-                id="btn-refresh-empty"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="text-[#00D2B4] hover:text-[#2fe6cb] active:scale-95 text-[13.5px] font-medium transition-all cursor-pointer mt-6 flex items-center gap-2"
-              >
-                {isRefreshing && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                <span>{isRefreshing ? 'Atualizando...' : 'Atualizar'}</span>
-              </button>
-            )}
+            <button
+              id="btn-refresh-empty"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="text-[#00D2B4] hover:text-[#2fe6cb] active:scale-95 text-[13.5px] font-medium transition-all cursor-pointer mt-6 flex items-center gap-2"
+            >
+              {isRefreshing && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+              <span>{isRefreshing ? 'Atualizando...' : 'Atualizar'}</span>
+            </button>
           </div>
         ) : (
           /* Grouped Event Cards - Exact match to IMG_8627.png */

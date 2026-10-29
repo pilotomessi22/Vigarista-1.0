@@ -89,8 +89,7 @@ export const RioHomeView: React.FC<RioHomeViewProps> = ({
               alt=""
               loading="eager"
               decoding="async"
-              // @ts-ignore
-              fetchpriority="high"
+              fetchPriority="high"
               onLoad={() => setImageLoaded(true)}
               onError={() => setImageError(true)}
               className={`w-full h-auto object-contain block select-none pointer-events-none will-change-transform transition-opacity duration-200 ${

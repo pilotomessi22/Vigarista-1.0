@@ -157,31 +157,6 @@ export const initialEvents: ConcertEvent[] = [
 ];
 
 export const pastEvents: ConcertEvent[] = [
-  {
-    id: 'bts-permission-past',
-    title: 'BTS PERMISSION TO DANCE ON STAGE',
-    venue: 'Allianz Parque',
-    city: 'São Paulo, SP',
-    dateFormatted: 'Sábado 12 19:30hs',
-    shortDate: '12/03/2025',
-    dayOfWeek: 'Sábado',
-    dayNumber: '12',
-    monthYear: 'Março 2025',
-    fullDate: 'Sábado, 12/03/2025 · 19:30hs',
-    status: 'past',
-    tickets: [
-      {
-        id: 'tkt-past-1',
-        eventId: 'bts-permission-past',
-        category: 'Pista Premium',
-        sector: 'Pista Premium · Inteira',
-        section: 'Pista Premium',
-        row: 'Geral',
-        seat: '-',
-        gate: 'Portão C',
-        titularName: 'Kiara Feitosa',
-        qrData: 'QTR-BTS-PTD-2025-ARCHIVED',
-      },
-    ],
-  },
+  initialEvents[0],
 ];
+
