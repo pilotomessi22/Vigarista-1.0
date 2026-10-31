@@ -158,5 +158,6 @@ export const initialEvents: ConcertEvent[] = [
 
 export const pastEvents: ConcertEvent[] = [
   initialEvents[0],
+  initialEvents[1],
 ];
 

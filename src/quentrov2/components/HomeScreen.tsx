@@ -84,16 +84,32 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const isOct28Event = (e: ConcertEvent) =>
     e.id === 'bts-arirang-28' || e.dayNumber === '28' || Boolean(e.shortDate?.startsWith('28/10'));
 
-  const oct28FromEvents = events.filter(isOct28Event).map((e) => ({
-    ...e,
-    monthYear: !e.monthYear || e.monthYear === 'Março 2025' ? 'Outubro 2026' : e.monthYear,
-  }));
+  const isOct30Event = (e: ConcertEvent) =>
+    e.id === 'bts-arirang-30' || e.dayNumber === '30' || Boolean(e.shortDate?.startsWith('30/10'));
+
+  const isPastEvent = (e: ConcertEvent) => isOct28Event(e) || isOct30Event(e);
+
+  const pastEventsFromEvents = events
+    .filter(isPastEvent)
+    .sort((a, b) => {
+      // Keep day 28 first, then day 30
+      if (isOct28Event(a) && isOct30Event(b)) return -1;
+      if (isOct30Event(a) && isOct28Event(b)) return 1;
+      return 0;
+    })
+    .map((e) => ({
+      ...e,
+      monthYear: !e.monthYear || e.monthYear === 'Março 2025' ? 'Outubro 2026' : e.monthYear,
+      dateFormatted: isOct30Event(e)
+        ? (e.dateFormatted || 'Sexta-feira 30 20:00hs')
+        : e.dateFormatted,
+    }));
 
   const displayedEvents =
     activeTab === 'proximos'
-      ? events.filter((e) => !isOct28Event(e))
-      : oct28FromEvents.length > 0
-      ? oct28FromEvents
+      ? events.filter((e) => !isPastEvent(e))
+      : pastEventsFromEvents.length > 0
+      ? pastEventsFromEvents
       : pastEvents;
 
   // Group events by monthYear (e.g. "Outubro 2026", matching "Septiembre 2024" in IMG_8610.png)
